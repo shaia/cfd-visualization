@@ -42,6 +42,7 @@ conda-meta/
 # OS
 .DS_Store
 Thumbs.db
+nul
 
 # Output files
 *.png
@@ -54,6 +55,7 @@ Thumbs.db
 output/
 animations/
 visualization_output/
+animation_frames/
 
 # Temporary files
 *.tmp
