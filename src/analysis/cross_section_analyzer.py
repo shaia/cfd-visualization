@@ -25,6 +25,10 @@ import glob
 import os
 import sys
 
+# Add parent directory to path for config import
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import DATA_DIR, PLOTS_DIR, find_vtk_files, ensure_dirs
+
 def read_vtk_file(filename):
     """Read a VTK structured points file and extract all data"""
     print(f"Reading VTK file: {filename}")
@@ -436,35 +440,43 @@ def interactive_line_analysis(data):
     plt.show()
 
 def main():
+    # Ensure output directories exist
+    ensure_dirs()
+
     parser = argparse.ArgumentParser(description='Cross-sectional analysis for CFD data')
     parser.add_argument('input_file', nargs='?', help='VTK file to analyze')
-    parser.add_argument('--output', '-o', default='visualization_output',
-                       help='Output directory for visualizations')
+    parser.add_argument('--output', '-o', default=None,
+                       help='Output directory for visualizations (default: centralized PLOTS_DIR)')
     parser.add_argument('--interactive', '-i', action='store_true',
                        help='Enable interactive line analysis')
     parser.add_argument('--latest', '-l', action='store_true',
-                       help='Use latest VTK file in output directory')
+                       help='Use latest VTK file in data directory')
 
     args = parser.parse_args()
 
+    # Use centralized output dir if not specified
+    output_dir = args.output if args.output else str(PLOTS_DIR)
+
     # Determine input file
     if args.latest:
-        vtk_files = glob.glob('../../output/vtk_files/*.vtk')
+        vtk_files = find_vtk_files()
         if not vtk_files:
-            print("No VTK files found in ../../output/vtk_files/")
+            print(f"No VTK files found in {DATA_DIR}")
+            print("Set CFD_VIZ_DATA_DIR environment variable to specify a different location.")
             return
-        input_file = max(vtk_files, key=os.path.getctime)
+        input_file = str(max(vtk_files, key=lambda f: f.stat().st_ctime))
         print(f"Using latest file: {input_file}")
     elif args.input_file:
         input_file = args.input_file
     else:
         # Try to find a VTK file
-        vtk_files = glob.glob('../../output/vtk_files/*.vtk')
+        vtk_files = find_vtk_files()
         if vtk_files:
-            input_file = vtk_files[0]
+            input_file = str(vtk_files[0])
             print(f"Using file: {input_file}")
         else:
-            print("No VTK file specified. Use --help for usage information.")
+            print(f"No VTK file specified. Use --help for usage information.")
+            print(f"Set CFD_VIZ_DATA_DIR environment variable to specify data location.")
             return
 
     # Read and analyze data
@@ -473,7 +485,7 @@ def main():
         return
 
     # Create comprehensive analysis
-    lines, bl_profiles = create_cross_section_analysis(data, args.output)
+    lines, bl_profiles = create_cross_section_analysis(data, output_dir)
 
     # Interactive analysis if requested
     if args.interactive:

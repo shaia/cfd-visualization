@@ -32,6 +32,10 @@ import json
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
+# Add parent directory to path for config import
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import DATA_DIR, PLOTS_DIR, ensure_dirs
+
 class CFDMonitor:
     def __init__(self, watch_dir, output_dir="visualization_output"):
         self.watch_dir = watch_dir
@@ -423,11 +427,14 @@ def manual_monitoring(watch_dir, output_dir, interval=2.0):
         monitor.save_metrics_history()
 
 def main():
+    # Ensure output directories exist
+    ensure_dirs()
+
     parser = argparse.ArgumentParser(description='Real-time CFD monitoring dashboard')
-    parser.add_argument('--watch_dir', '-w', default='../../output/vtk_files',
-                       help='Directory to monitor for VTK files')
-    parser.add_argument('--output', '-o', default='visualization_output',
-                       help='Output directory for saved data')
+    parser.add_argument('--watch_dir', '-w', default=None,
+                       help='Directory to monitor for VTK files (default: centralized DATA_DIR)')
+    parser.add_argument('--output', '-o', default=None,
+                       help='Output directory for saved data (default: centralized PLOTS_DIR)')
     parser.add_argument('--interval', '-i', type=float, default=2.0,
                        help='Monitoring interval in seconds (manual mode)')
     parser.add_argument('--manual', '-m', action='store_true',
@@ -435,16 +442,21 @@ def main():
 
     args = parser.parse_args()
 
-    if not os.path.exists(args.watch_dir):
-        print(f"Watch directory does not exist: {args.watch_dir}")
+    # Use centralized directories if not specified
+    watch_dir = args.watch_dir if args.watch_dir else str(DATA_DIR)
+    output_dir = args.output if args.output else str(PLOTS_DIR)
+
+    if not os.path.exists(watch_dir):
+        print(f"Watch directory does not exist: {watch_dir}")
+        print(f"Set CFD_VIZ_DATA_DIR environment variable to specify data location.")
         return
 
     try:
         if args.manual:
-            manual_monitoring(args.watch_dir, args.output, args.interval)
+            manual_monitoring(watch_dir, output_dir, args.interval)
         else:
             # Automatic monitoring with file system events
-            monitor = CFDMonitor(args.watch_dir, args.output)
+            monitor = CFDMonitor(watch_dir, output_dir)
 
             # Setup matplotlib for interactive use
             plt.ion()
@@ -463,7 +475,7 @@ def main():
 
     except ImportError:
         print("Warning: watchdog package not available. Using manual mode.")
-        manual_monitoring(args.watch_dir, args.output, args.interval)
+        manual_monitoring(watch_dir, output_dir, args.interval)
 
     print("Real-time monitoring complete!")
 
