@@ -26,7 +26,6 @@ import matplotlib
 matplotlib.use('Agg')  # Use non-interactive backend
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from matplotlib.patches import Rectangle
 import argparse
 import os
 import sys
@@ -34,6 +33,25 @@ import sys
 # Add parent directory to path for config import
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import DATA_DIR, PLOTS_DIR, ANIMATIONS_DIR, find_vtk_files, ensure_dirs
+
+
+def extract_iteration_from_filename(filename: str, fallback: int) -> int:
+    """Extract iteration number from VTK filename.
+
+    Expects filenames like 'flow_field_0100.vtk' where the iteration
+    number is the last numeric segment before the extension.
+
+    Args:
+        filename: Path to the VTK file.
+        fallback: Value to return if extraction fails.
+
+    Returns:
+        Extracted iteration number, or fallback value.
+    """
+    try:
+        return int(os.path.basename(filename).split('_')[-1].split('.')[0])
+    except ValueError:
+        return fallback
 
 
 def read_vtk_file(filename):
@@ -58,7 +76,7 @@ def read_vtk_file(filename):
             data_start = i + 1
             break
 
-    if not all([dimensions, origin, spacing, data_start]):
+    if any(x is None for x in [dimensions, origin, spacing, data_start]):
         raise ValueError(f"Invalid VTK file format: {filename}")
 
     nx, ny = dimensions[0], dimensions[1]
@@ -92,7 +110,7 @@ def read_vtk_file(filename):
                 data_fields[field_name] = field_data
 
         elif line.startswith('VECTORS'):
-            field_name = line.split()[1]
+            # Note: field_name from line.split()[1] is ignored; we store as 'u' and 'v'
             i += 1
 
             # Read vector data (3 components per point)
@@ -218,12 +236,7 @@ def animate_field(vtk_files, field_name='velocity_magnitude', output_prefix=None
                 continue
 
             frames_data.append(field_data)
-            # Extract iteration number from filename
-            try:
-                iteration = int(os.path.basename(filename).split('_')[-1].split('.')[0])
-            except ValueError:
-                iteration = len(times)
-            times.append(iteration)
+            times.append(extract_iteration_from_filename(filename, len(times)))
 
         except Exception as e:
             print(f"  Error reading {filename}: {e}")
@@ -293,11 +306,7 @@ def create_streamline_animation(vtk_files):
 
             if 'u' in data_fields and 'v' in data_fields:
                 frames_data.append((data_fields['u'], data_fields['v']))
-                try:
-                    iteration = int(os.path.basename(filename).split('_')[-1].split('.')[0])
-                except ValueError:
-                    iteration = len(times)
-                times.append(iteration)
+                times.append(extract_iteration_from_filename(filename, len(times)))
         except Exception as e:
             print(f"  Error reading {filename}: {e}")
             continue
@@ -321,15 +330,16 @@ def create_streamline_animation(vtk_files):
         # Create streamlines - streamplot expects 1D x, y and 2D u, v
         # u and v should have shape (len(y), len(x))
         # Transpose if necessary to match the expected shape
-        if u_frame.shape[0] != len(y) or u_frame.shape[1] != len(x):
+        if u_frame.shape == (len(x), len(y)):
             u_frame = u_frame.T
             v_frame = v_frame.T
+        elif u_frame.shape != (len(y), len(x)):
+            print(f"Warning: Frame {frame} shape {u_frame.shape} doesn't match grid ({len(y)}, {len(x)})")
 
-        # Calculate speed for coloring - must match u, v shape
+        # Calculate speed for coloring
         speed = np.sqrt(u_frame**2 + v_frame**2)
 
-        # Use streamplot without color argument to avoid shape issues
-        ax.streamplot(x, y, u_frame, v_frame, cmap='viridis', density=1.5, linewidth=0.5)
+        ax.streamplot(x, y, u_frame, v_frame, color=speed, cmap='viridis', density=1.5, linewidth=0.5)
 
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
@@ -429,9 +439,10 @@ Examples:
 
     print(f"Found {len(vtk_files)} VTK file(s)")
 
-    # Determine what to create
-    do_static = args.static or args.all or (not args.static and not args.animate)
-    do_animate = args.animate or args.all or (not args.static and not args.animate)
+    # Determine what to create (default: do both if neither specified)
+    do_both = not args.static and not args.animate
+    do_static = args.static or args.all or do_both
+    do_animate = args.animate or args.all or do_both
 
     if do_static:
         create_static_plots(vtk_files, args.field)

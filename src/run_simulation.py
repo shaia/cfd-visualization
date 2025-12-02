@@ -46,8 +46,7 @@ except ImportError as e:
     CFD_ERROR = f"cfd-python package not installed: {e}"
 
 
-def run_simulation(nx=100, ny=50, solver=None, num_iterations=1000,
-                   output_interval=100, reynolds=100.0):
+def run_simulation(nx=100, ny=50, solver=None, num_iterations=1000):
     """Run CFD simulation using cfd-python wrapper"""
 
     if not CFD_AVAILABLE:
@@ -64,8 +63,6 @@ def run_simulation(nx=100, ny=50, solver=None, num_iterations=1000,
     print(f"==============")
     print(f"Grid: {nx} x {ny}")
     print(f"Iterations: {num_iterations}")
-    print(f"Output interval: {output_interval}")
-    print(f"Reynolds number: {reynolds}")
     print(f"Output directory: {DATA_DIR}")
 
     # List available solvers
@@ -78,21 +75,16 @@ def run_simulation(nx=100, ny=50, solver=None, num_iterations=1000,
             print(f"Error: Solver '{solver}' not available")
             print(f"Available solvers: {', '.join(available_solvers)}")
             return False
-        solver_type = getattr(cfd_python, f"SOLVER_{solver.upper()}", None)
-        if solver_type is None:
-            print(f"Error: Could not find solver constant for '{solver}'")
-            return False
     else:
         # Use default (first available)
         solver = available_solvers[0] if available_solvers else "jacobi"
-        solver_type = getattr(cfd_python, f"SOLVER_{solver.upper()}", 0)
 
     print(f"Using solver: {solver}")
     print(f"\nRunning simulation...")
 
     try:
         # Generate output filename
-        output_file = str(DATA_DIR / f"flow_field_{nx}x{ny}_Re{int(reynolds)}.vtk")
+        output_file = str(DATA_DIR / f"flow_field_{nx}x{ny}.vtk")
 
         # Run simulation with keyword arguments
         result = cfd_python.run_simulation_with_params(
@@ -144,10 +136,6 @@ Examples:
                        help='Solver type (jacobi, gauss_seidel, sor, etc.)')
     parser.add_argument('--iterations', '-i', type=int, default=1000,
                        help='Maximum iterations (default: 1000)')
-    parser.add_argument('--output-interval', type=int, default=100,
-                       help='VTK output interval (default: 100)')
-    parser.add_argument('--reynolds', '-r', type=float, default=100.0,
-                       help='Reynolds number (default: 100.0)')
     parser.add_argument('--visualize', '-v', action='store_true',
                        help='Create visualizations after simulation')
     parser.add_argument('--list-solvers', action='store_true',
@@ -175,9 +163,7 @@ Examples:
         nx=args.nx,
         ny=args.ny,
         solver=args.solver,
-        num_iterations=args.iterations,
-        output_interval=args.output_interval,
-        reynolds=args.reynolds
+        num_iterations=args.iterations
     )
 
     if not success:
@@ -187,10 +173,14 @@ Examples:
     if args.visualize:
         print("\nCreating visualizations...")
         try:
-            from visualize_cfd import main as viz_main
-            # Override sys.argv for visualize_cfd
-            sys.argv = ['visualize_cfd.py', '--all']
-            viz_main()
+            from visualize_cfd import create_static_plots, create_animations, find_vtk_files
+            vtk_files = find_vtk_files()
+            if vtk_files:
+                create_static_plots(vtk_files)
+                if len(vtk_files) > 1:
+                    create_animations(vtk_files)
+            else:
+                print("No VTK files found for visualization")
         except ImportError as e:
             print(f"Could not import visualization module: {e}")
         except Exception as e:

@@ -29,8 +29,12 @@ DEFAULT_VTK_PATTERN = '*.vtk'
 
 
 def ensure_dirs():
-    """Create output directories if they don't exist."""
-    for d in [DATA_DIR, OUTPUT_DIR, ANIMATIONS_DIR, PLOTS_DIR, HTML_DIR]:
+    """Create output directories if they don't exist.
+
+    Note: Only creates output directories, not DATA_DIR.
+    DATA_DIR is for input VTK files and should exist from simulation output.
+    """
+    for d in [OUTPUT_DIR, ANIMATIONS_DIR, PLOTS_DIR, HTML_DIR]:
         d.mkdir(parents=True, exist_ok=True)
 
 
