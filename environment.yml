@@ -3,7 +3,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python>=3.8
+  - python>=3.8,<3.13
   - numpy>=1.20.0
   - matplotlib>=3.5.0
   - scipy>=1.7.0
@@ -14,7 +14,6 @@ dependencies:
   - jupyter
   - ipykernel
   - watchdog>=2.1.0
+  - vtk>=9.0.0
+  - plotly>=5.0.0
   - pip
-  - pip:
-    - vtk>=9.0.0
-    - plotly>=5.0.0
