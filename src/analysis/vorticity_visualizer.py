@@ -75,7 +75,24 @@ def read_vtk_file(filename):
     while i < len(lines):
         line = lines[i].strip()
 
-        if line.startswith('SCALARS u_velocity'):
+        if line.startswith('VECTORS velocity') or line.startswith('VECTORS Velocity'):
+            # Parse VECTORS format: each line has 3 components (u, v, w)
+            i += 1
+            u_values = []
+            v_values = []
+            while i < len(lines) and len(u_values) < nx * ny:
+                parts = lines[i].strip().split()
+                if len(parts) >= 3:
+                    u_values.append(float(parts[0]))
+                    v_values.append(float(parts[1]))
+                    i += 1
+                else:
+                    break
+            if u_values:
+                u_data = np.array(u_values).reshape((ny, nx))
+                v_data = np.array(v_values).reshape((ny, nx))
+
+        elif line.startswith('SCALARS u_velocity'):
             i += 2  # Skip LOOKUP_TABLE line
             u_values = []
             while i < len(lines) and len(u_values) < nx * ny:
