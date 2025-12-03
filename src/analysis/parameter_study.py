@@ -27,6 +27,10 @@ import sys
 from pathlib import Path
 import json
 
+# Add parent directory to path for config import
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import DATA_DIR, PLOTS_DIR, ensure_dirs
+
 def read_vtk_file(filename):
     """Read a VTK structured points file and extract all data"""
     try:
@@ -455,11 +459,14 @@ def parameter_sweep_analysis(data_list, param_name, output_dir):
     return param_values, all_metrics
 
 def main():
+    # Ensure output directories exist
+    ensure_dirs()
+
     parser = argparse.ArgumentParser(description='Parameter study and comparison tool for CFD data')
-    parser.add_argument('--input_dir', '-d', default='../../output/vtk_files',
-                       help='Directory containing VTK files')
-    parser.add_argument('--output', '-o', default='visualization_output',
-                       help='Output directory for visualizations')
+    parser.add_argument('--input_dir', '-d', default=None,
+                       help='Directory containing VTK files (default: centralized DATA_DIR)')
+    parser.add_argument('--output', '-o', default=None,
+                       help='Output directory for visualizations (default: centralized PLOTS_DIR)')
     parser.add_argument('--compare', '-c', nargs=2, metavar=('FILE1', 'FILE2'),
                        help='Compare two specific VTK files')
     parser.add_argument('--sweep', '-s', help='Parameter name for sweep analysis')
@@ -467,7 +474,9 @@ def main():
 
     args = parser.parse_args()
 
-    os.makedirs(args.output, exist_ok=True)
+    # Use centralized directories if not specified
+    input_dir = args.input_dir if args.input_dir else str(DATA_DIR)
+    output_dir = args.output if args.output else str(PLOTS_DIR)
 
     if args.compare:
         # Compare two specific files
@@ -477,21 +486,22 @@ def main():
         if data1 and data2:
             case1_name = os.path.splitext(os.path.basename(args.compare[0]))[0]
             case2_name = os.path.splitext(os.path.basename(args.compare[1]))[0]
-            compare_two_cases(data1, data2, case1_name, case2_name, args.output)
+            compare_two_cases(data1, data2, case1_name, case2_name, output_dir)
         else:
             print("Error reading VTK files")
 
     else:
         # Find all VTK files
         if args.pattern:
-            pattern = os.path.join(args.input_dir, args.pattern)
+            pattern = os.path.join(input_dir, args.pattern)
         else:
-            pattern = os.path.join(args.input_dir, '*.vtk')
+            pattern = os.path.join(input_dir, '*.vtk')
 
         vtk_files = glob.glob(pattern)
 
         if len(vtk_files) == 0:
             print(f"No VTK files found matching: {pattern}")
+            print(f"Set CFD_VIZ_DATA_DIR environment variable to specify data location.")
             return
 
         print(f"Found {len(vtk_files)} VTK files")
@@ -509,13 +519,13 @@ def main():
 
         # Parameter sweep analysis
         if args.sweep:
-            parameter_sweep_analysis(data_list, args.sweep, args.output)
+            parameter_sweep_analysis(data_list, args.sweep, output_dir)
 
         # If we have exactly 2 files, do a comparison
         elif len(data_list) == 2:
             case1_name = os.path.splitext(os.path.basename(data_list[0]['filename']))[0]
             case2_name = os.path.splitext(os.path.basename(data_list[1]['filename']))[0]
-            compare_two_cases(data_list[0], data_list[1], case1_name, case2_name, args.output)
+            compare_two_cases(data_list[0], data_list[1], case1_name, case2_name, output_dir)
 
         else:
             print(f"Found {len(data_list)} files. Use --sweep to analyze parameter variations")
