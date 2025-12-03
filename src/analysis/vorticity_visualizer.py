@@ -16,6 +16,8 @@ Usage:
     python vorticity_visualizer.py [vtk_file] [options]
 """
 
+from typing import Any, Dict, Optional
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -26,100 +28,30 @@ import glob
 import os
 import sys
 
-# Add parent directory to path for config import
+# Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import DATA_DIR, PLOTS_DIR, find_vtk_files, ensure_dirs
+from vtk_reader import read_vtk_file as _read_vtk_file
 
-def read_vtk_file(filename):
-    """Read a VTK structured points file and extract velocity data"""
+
+def read_vtk_file(filename: str) -> Optional[Dict[str, Any]]:
+    """Read a VTK structured points file and extract velocity data.
+
+    Args:
+        filename: Path to the VTK file.
+
+    Returns:
+        Dictionary with keys: x, y, u, v, nx, ny, dx, dy
+        or None if the file cannot be read.
+    """
     print(f"Reading VTK file: {filename}")
-
-    try:
-        with open(filename, 'r') as f:
-            lines = f.readlines()
-    except FileNotFoundError:
-        print(f"Error: File {filename} not found")
+    data = _read_vtk_file(filename)
+    if data is None:
         return None
-
-    # Parse header
-    dimensions = None
-    origin = None
-    spacing = None
-    data_start = None
-
-    for i, line in enumerate(lines):
-        if line.startswith('DIMENSIONS'):
-            dimensions = [int(x) for x in line.split()[1:4]]
-        elif line.startswith('ORIGIN'):
-            origin = [float(x) for x in line.split()[1:4]]
-        elif line.startswith('SPACING'):
-            spacing = [float(x) for x in line.split()[1:4]]
-        elif line.startswith('POINT_DATA'):
-            data_start = i + 1
-            break
-
-    if not all([dimensions, origin, spacing, data_start]):
-        raise ValueError(f"Invalid VTK file format: {filename}")
-
-    nx, ny = dimensions[0], dimensions[1]
-
-    # Create coordinate arrays
-    x = np.linspace(origin[0], origin[0] + (nx-1)*spacing[0], nx)
-    y = np.linspace(origin[1], origin[1] + (ny-1)*spacing[1], ny)
-
-    # Parse velocity data
-    u_data = None
-    v_data = None
-
-    i = data_start
-    while i < len(lines):
-        line = lines[i].strip()
-
-        if line.startswith('VECTORS velocity') or line.startswith('VECTORS Velocity'):
-            # Parse VECTORS format: each line has 3 components (u, v, w)
-            i += 1
-            u_values = []
-            v_values = []
-            while i < len(lines) and len(u_values) < nx * ny:
-                parts = lines[i].strip().split()
-                if len(parts) >= 3:
-                    u_values.append(float(parts[0]))
-                    v_values.append(float(parts[1]))
-                    i += 1
-                else:
-                    break
-            if u_values:
-                u_data = np.array(u_values).reshape((ny, nx))
-                v_data = np.array(v_values).reshape((ny, nx))
-
-        elif line.startswith('SCALARS u_velocity'):
-            i += 2  # Skip LOOKUP_TABLE line
-            u_values = []
-            while i < len(lines) and len(u_values) < nx * ny:
-                values = [float(x) for x in lines[i].split()]
-                u_values.extend(values)
-                i += 1
-            u_data = np.array(u_values).reshape((ny, nx))
-
-        elif line.startswith('SCALARS v_velocity'):
-            i += 2  # Skip LOOKUP_TABLE line
-            v_values = []
-            while i < len(lines) and len(v_values) < nx * ny:
-                values = [float(x) for x in lines[i].split()]
-                v_values.extend(values)
-                i += 1
-            v_data = np.array(v_values).reshape((ny, nx))
-        else:
-            i += 1
-
-    if u_data is None or v_data is None:
+    if data.u is None or data.v is None:
         print("Error: Could not find velocity data in VTK file")
         return None
-
-    return {
-        'x': x, 'y': y, 'u': u_data, 'v': v_data,
-        'nx': nx, 'ny': ny, 'dx': spacing[0], 'dy': spacing[1]
-    }
+    return data.to_dict()
 
 def calculate_vorticity(u, v, dx, dy):
     """Calculate vorticity field (curl of velocity)"""

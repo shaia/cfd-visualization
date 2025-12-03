@@ -29,10 +29,8 @@ def main():
     run_simulation(
         nx=200,
         ny=50,
-        solver='projection_optimized',
-        num_iterations=3000,
-        output_interval=300,
-        reynolds=50.0
+        solver='projection',
+        num_iterations=3000
     )
 
 if __name__ == "__main__":

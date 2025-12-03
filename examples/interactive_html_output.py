@@ -16,9 +16,12 @@ Features:
 
 import sys
 import os
+from typing import Optional
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from config import DATA_DIR, OUTPUT_DIR, ensure_dirs
+from vtk_reader import read_vtk_file
 
 try:
     import cfd_python
@@ -27,7 +30,6 @@ except ImportError:
     CFD_AVAILABLE = False
 
 import numpy as np
-from numpy.typing import NDArray
 
 try:
     import plotly.graph_objects as go
@@ -37,7 +39,7 @@ except ImportError:
     PLOTLY_AVAILABLE = False
 
 
-def run_simulation() -> str | None:
+def run_simulation() -> Optional[str]:
     """Run a simulation and return the output file path."""
     if not CFD_AVAILABLE:
         print("Error: cfd-python not available")
@@ -65,92 +67,7 @@ def run_simulation() -> str | None:
     return output_file
 
 
-def read_vtk_file(filepath: str) -> tuple[NDArray, NDArray, dict[str, NDArray]]:
-    """Read VTK file and extract grid and data.
-
-    Args:
-        filepath: Path to the VTK file.
-
-    Returns:
-        Tuple of (X, Y, data) where X and Y are coordinate meshgrids
-        and data is a dict mapping field names to 2D arrays.
-    """
-    with open(filepath, 'r') as f:
-        lines = f.readlines()
-
-    nx, ny, nz = 0, 0, 0
-    origin = [0.0, 0.0, 0.0]
-    spacing = [1.0, 1.0, 1.0]
-    data = {}
-
-    i = 0
-    while i < len(lines):
-        line = lines[i].strip()
-
-        if line.startswith('DIMENSIONS'):
-            parts = line.split()
-            nx, ny, nz = int(parts[1]), int(parts[2]), int(parts[3])
-
-        elif line.startswith('ORIGIN'):
-            parts = line.split()
-            origin = [float(parts[1]), float(parts[2]), float(parts[3])]
-
-        elif line.startswith('SPACING'):
-            parts = line.split()
-            spacing = [float(parts[1]), float(parts[2]), float(parts[3])]
-
-        elif line.startswith('VECTORS'):
-            name = line.split()[1]
-            values = []
-            i += 1
-            while i < len(lines) and len(values) < nx * ny:
-                line_content = lines[i].strip()
-                # Stop if we hit another VTK keyword
-                if not line_content or line_content.split()[0].isalpha():
-                    break
-                parts = line_content.split()
-                # VTK VECTORS have 3 components (x, y, z); we only use x, y for 2D
-                if len(parts) >= 3:
-                    values.append((float(parts[0]), float(parts[1])))
-                    i += 1
-                else:
-                    break
-            if values:
-                u = np.array([v[0] for v in values]).reshape((ny, nx))
-                v = np.array([v[1] for v in values]).reshape((ny, nx))
-                data['u'] = u
-                data['v'] = v
-            continue
-
-        elif line.startswith('SCALARS'):
-            name = line.split()[1]
-            i += 2  # Skip LOOKUP_TABLE line
-            values = []
-            while i < len(lines) and len(values) < nx * ny:
-                line_content = lines[i].strip()
-                # Stop if we hit another VTK keyword (non-numeric line)
-                if not line_content or line_content[0].isalpha():
-                    break
-                try:
-                    values.append(float(line_content))
-                except ValueError:
-                    break
-                i += 1
-            if values:
-                data[name] = np.array(values).reshape((ny, nx))
-            continue
-
-        i += 1
-
-    # Create coordinate grids
-    x = origin[0] + np.arange(nx) * spacing[0]
-    y = origin[1] + np.arange(ny) * spacing[1]
-    X, Y = np.meshgrid(x, y)
-
-    return X, Y, data
-
-
-def create_html_visualization(vtk_file: str, output_file: str) -> str | None:
+def create_html_visualization(vtk_file: str, output_file: str) -> Optional[str]:
     """Create interactive HTML visualization from VTK data.
 
     Args:
@@ -165,13 +82,18 @@ def create_html_visualization(vtk_file: str, output_file: str) -> str | None:
         return None
 
     print("Reading VTK file...")
-    X, Y, data = read_vtk_file(vtk_file)
+    data = read_vtk_file(vtk_file)
+    if data is None:
+        print("Error: Could not read VTK file")
+        return None
+
+    X, Y = data.X, data.Y
 
     # Calculate velocity magnitude
-    if 'u' in data and 'v' in data:
-        vel_mag = np.sqrt(data['u']**2 + data['v']**2)
-    elif 'velocity_magnitude' in data:
-        vel_mag = data['velocity_magnitude']
+    if data.u is not None and data.v is not None:
+        vel_mag = np.sqrt(data.u**2 + data.v**2)
+    elif 'velocity_magnitude' in data.fields:
+        vel_mag = data.fields['velocity_magnitude']
     else:
         print("Error: No velocity data found")
         return None
@@ -202,8 +124,8 @@ def create_html_visualization(vtk_file: str, output_file: str) -> str | None:
     skip = 3
     x_sub = X[::skip, ::skip].flatten()
     y_sub = Y[::skip, ::skip].flatten()
-    u_sub = data['u'][::skip, ::skip].flatten()
-    v_sub = data['v'][::skip, ::skip].flatten()
+    u_sub = data.u[::skip, ::skip].flatten()
+    v_sub = data.v[::skip, ::skip].flatten()
 
     # Normalize for display
     mag_sub = np.sqrt(u_sub**2 + v_sub**2)

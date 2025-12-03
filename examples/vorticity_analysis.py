@@ -16,6 +16,8 @@ Requirements:
 
 import sys
 import os
+from typing import Optional
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'analysis'))
 
@@ -36,7 +38,7 @@ from vorticity_visualizer import (
 )
 
 
-def run_simulation() -> str | None:
+def run_simulation() -> Optional[str]:
     """Run a lid-driven cavity simulation to generate vortical flow."""
     if not CFD_AVAILABLE:
         print("Error: cfd-python not available")

@@ -33,9 +33,7 @@ def main():
         nx=100,
         ny=100,
         solver='projection',
-        num_iterations=5000,
-        output_interval=500,
-        reynolds=100.0
+        num_iterations=5000
     )
 
 if __name__ == "__main__":

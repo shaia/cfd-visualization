@@ -14,9 +14,11 @@ Output: lid_driven_cavity_vectors.gif
 
 import sys
 import os
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from config import DATA_DIR, ANIMATIONS_DIR, ensure_dirs
+from vtk_reader import read_vtk_velocity
 
 try:
     import cfd_python
@@ -30,9 +32,8 @@ import matplotlib.animation as animation
 import glob
 
 
-def run_simulation():
-    """Run simulation with multiple outputs for animation"""
-
+def run_simulation() -> bool:
+    """Run simulation with multiple outputs for animation."""
     if not CFD_AVAILABLE:
         print("Error: cfd-python not available")
         return False
@@ -85,79 +86,6 @@ def run_simulation():
     return True
 
 
-def read_vtk_file(filename):
-    """Read VTK file and extract velocity components"""
-    with open(filename, 'r') as f:
-        lines = f.readlines()
-
-    nx, ny = 0, 0
-    X, Y = None, None
-    u, v = None, None
-    origin = (0.0, 0.0)
-    spacing = (1.0, 1.0)
-
-    i = 0
-    while i < len(lines):
-        line = lines[i].strip()
-
-        if line.startswith('DIMENSIONS'):
-            parts = line.split()
-            nx, ny = int(parts[1]), int(parts[2])
-
-        elif line.startswith('ORIGIN'):
-            parts = line.split()
-            origin = (float(parts[1]), float(parts[2]))
-
-        elif line.startswith('SPACING'):
-            parts = line.split()
-            spacing = (float(parts[1]), float(parts[2]))
-
-        elif line.startswith('X_COORDINATES'):
-            n = int(line.split()[1])
-            i += 1
-            x_coords = []
-            while len(x_coords) < n:
-                x_coords.extend([float(val) for val in lines[i].strip().split()])
-                i += 1
-            i -= 1
-
-        elif line.startswith('Y_COORDINATES'):
-            n = int(line.split()[1])
-            i += 1
-            y_coords = []
-            while len(y_coords) < n:
-                y_coords.extend([float(val) for val in lines[i].strip().split()])
-                i += 1
-            i -= 1
-            X, Y = np.meshgrid(x_coords, y_coords)
-
-        elif line.startswith('VECTORS'):
-            i += 1
-            u_data = []
-            v_data = []
-            while i < len(lines) and len(u_data) < nx * ny:
-                values = lines[i].strip().split()
-                if len(values) >= 2:
-                    u_data.append(float(values[0]))
-                    v_data.append(float(values[1]))
-                i += 1
-
-            if len(u_data) == nx * ny:
-                u = np.array(u_data).reshape((ny, nx))
-                v = np.array(v_data).reshape((ny, nx))
-            i -= 1
-
-        i += 1
-
-    # If X, Y not set from coordinates, create from origin/spacing (STRUCTURED_POINTS)
-    if X is None and nx > 0 and ny > 0:
-        x_coords = origin[0] + np.arange(nx) * spacing[0]
-        y_coords = origin[1] + np.arange(ny) * spacing[1]
-        X, Y = np.meshgrid(x_coords, y_coords)
-
-    return X, Y, u, v
-
-
 def create_vector_animation():
     """Create animated quiver plot showing velocity vectors"""
     print()
@@ -179,7 +107,7 @@ def create_vector_animation():
     X, Y = None, None
 
     for filename in vtk_files:
-        X, Y, u, v = read_vtk_file(filename)
+        X, Y, u, v = read_vtk_velocity(filename)
         if u is not None and v is not None:
             frames_data.append((u, v))
             try:

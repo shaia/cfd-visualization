@@ -28,9 +28,7 @@ def main():
         nx=50,
         ny=50,
         solver=None,  # Use default
-        num_iterations=500,
-        output_interval=100,
-        reynolds=100.0
+        num_iterations=500
     )
 
     if success:

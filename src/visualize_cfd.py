@@ -21,7 +21,10 @@ Usage:
     python visualize_cfd.py --field pressure --animate
 """
 
+from typing import Dict, Tuple
+
 import numpy as np
+from numpy.typing import NDArray
 import matplotlib
 matplotlib.use('Agg')  # Use non-interactive backend
 import matplotlib.pyplot as plt
@@ -33,6 +36,7 @@ import sys
 # Add parent directory to path for config import
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import DATA_DIR, PLOTS_DIR, ANIMATIONS_DIR, find_vtk_files, ensure_dirs
+from vtk_reader import read_vtk_file as _read_vtk_file
 
 
 def extract_iteration_from_filename(filename: str, fallback: int) -> int:
@@ -54,83 +58,20 @@ def extract_iteration_from_filename(filename: str, fallback: int) -> int:
         return fallback
 
 
-def read_vtk_file(filename):
-    """Read a VTK structured points file and extract data"""
-    with open(filename, 'r') as f:
-        lines = f.readlines()
+def read_vtk_file(filename: str) -> Tuple[NDArray, NDArray, Dict[str, NDArray]]:
+    """Read a VTK structured points file and extract data.
 
-    # Parse header
-    dimensions = None
-    origin = None
-    spacing = None
-    data_start = None
+    Args:
+        filename: Path to the VTK file.
 
-    for i, line in enumerate(lines):
-        if line.startswith('DIMENSIONS'):
-            dimensions = [int(x) for x in line.split()[1:4]]
-        elif line.startswith('ORIGIN'):
-            origin = [float(x) for x in line.split()[1:4]]
-        elif line.startswith('SPACING'):
-            spacing = [float(x) for x in line.split()[1:4]]
-        elif line.startswith('POINT_DATA'):
-            data_start = i + 1
-            break
-
-    if any(x is None for x in [dimensions, origin, spacing, data_start]):
-        raise ValueError(f"Invalid VTK file format: {filename}")
-
-    nx, ny = dimensions[0], dimensions[1]
-
-    # Create coordinate arrays
-    x = np.linspace(origin[0], origin[0] + (nx-1)*spacing[0], nx)
-    y = np.linspace(origin[1], origin[1] + (ny-1)*spacing[1], ny)
-    X, Y = np.meshgrid(x, y)
-
-    # Parse data fields
-    data_fields = {}
-    i = data_start
-
-    while i < len(lines):
-        line = lines[i].strip()
-        if line.startswith('SCALARS'):
-            field_name = line.split()[1]
-            i += 2  # Skip LOOKUP_TABLE line
-
-            # Read scalar data
-            field_data = []
-            while i < len(lines) and not lines[i].strip().startswith(('SCALARS', 'VECTORS')):
-                values = lines[i].strip().split()
-                if values:
-                    field_data.extend([float(v) for v in values])
-                i += 1
-
-            # Reshape to grid
-            if len(field_data) == nx * ny:
-                field_data = np.array(field_data).reshape((ny, nx))
-                data_fields[field_name] = field_data
-
-        elif line.startswith('VECTORS'):
-            # Note: field_name from line.split()[1] is ignored; we store as 'u' and 'v'
-            i += 1
-
-            # Read vector data (3 components per point)
-            u_data = []
-            v_data = []
-            while i < len(lines) and len(u_data) < nx * ny:
-                values = lines[i].strip().split()
-                if len(values) >= 2:
-                    u_data.append(float(values[0]))
-                    v_data.append(float(values[1]))
-                i += 1
-
-            # Reshape to grid and store as u, v components
-            if len(u_data) == nx * ny:
-                data_fields['u'] = np.array(u_data).reshape((ny, nx))
-                data_fields['v'] = np.array(v_data).reshape((ny, nx))
-        else:
-            i += 1
-
-    return X, Y, data_fields
+    Returns:
+        Tuple of (X, Y, data_fields) where X and Y are coordinate meshgrids
+        and data_fields is a dict mapping field names to 2D arrays.
+    """
+    data = _read_vtk_file(filename)
+    if data is None:
+        raise ValueError(f"Could not read VTK file: {filename}")
+    return data.X, data.Y, data.fields
 
 
 def create_velocity_magnitude(u, v):
