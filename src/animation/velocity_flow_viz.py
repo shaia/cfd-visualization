@@ -16,22 +16,23 @@ Usage:
     python velocity_flow_viz.py [vtk_file]
 """
 
-import numpy as np
 import matplotlib
+import numpy as np
+
 matplotlib.use('Agg')  # Use non-interactive backend
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from matplotlib.colors import Normalize
-import sys
-import os
 import glob
+import os
+import sys
+
+import matplotlib.pyplot as plt
+
 
 def read_vtk_structured_points(filename):
     """Read VTK structured points file and extract data"""
     print(f"Reading VTK file: {filename}")
 
     try:
-        with open(filename, 'r') as file:
+        with open(filename) as file:
             lines = file.readlines()
     except FileNotFoundError:
         print(f"Error: File {filename} not found")
@@ -314,7 +315,7 @@ def visualize_flow_evolution(pattern="output/flow_field_*.vtk"):
     print(f"Found {len(files)} flow field files")
 
     # Create animation-like sequence
-    for i, filename in enumerate(files[::2]):  # Every other file to reduce output
+    for filename in files[::2]:  # Every other file to reduce output
         print(f"Processing {filename}...")
         data = read_vtk_structured_points(filename)
 
@@ -346,8 +347,8 @@ def main():
         else:
             filename = vtk_files[-1]  # Use latest VTK file
 
-    print(f"CFD Framework - Advanced Velocity Flow Visualization")
-    print(f"====================================================")
+    print("CFD Framework - Advanced Velocity Flow Visualization")
+    print("====================================================")
 
     # Read and visualize the data
     data = read_vtk_structured_points(filename)

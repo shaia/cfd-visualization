@@ -16,25 +16,22 @@ Usage:
     python realtime_monitor.py [options]
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from matplotlib.widgets import Button
-import pandas as pd
 import argparse
 import glob
 import os
 import sys
 import time
-import threading
-from pathlib import Path
-import json
-from watchdog.observers import Observer
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 
 # Add parent directory to path for config import
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import DATA_DIR, PLOTS_DIR, ensure_dirs
+
 
 class CFDMonitor:
     def __init__(self, watch_dir, output_dir="visualization_output"):
@@ -113,7 +110,7 @@ class CFDMonitor:
     def read_vtk_file(self, filename):
         """Read a VTK structured points file and extract data"""
         try:
-            with open(filename, 'r') as f:
+            with open(filename) as f:
                 lines = f.readlines()
         except (FileNotFoundError, PermissionError):
             return None
@@ -234,7 +231,7 @@ class CFDMonitor:
 
         # Update velocity field
         self.ax_velocity.clear()
-        cs1 = self.ax_velocity.contourf(X, Y, velocity_mag, levels=20, cmap='viridis')
+        self.ax_velocity.contourf(X, Y, velocity_mag, levels=20, cmap='viridis')
         self.ax_velocity.set_title(f'Velocity Field - {os.path.basename(data["filename"])}')
         self.ax_velocity.set_xlabel('x (m)')
         self.ax_velocity.set_ylabel('y (m)')
@@ -242,7 +239,7 @@ class CFDMonitor:
 
         # Update pressure field
         self.ax_pressure.clear()
-        cs2 = self.ax_pressure.contourf(X, Y, pressure, levels=20, cmap='plasma')
+        self.ax_pressure.contourf(X, Y, pressure, levels=20, cmap='plasma')
         self.ax_pressure.set_title(f'Pressure Field - {os.path.basename(data["filename"])}')
         self.ax_pressure.set_xlabel('x (m)')
         self.ax_pressure.set_ylabel('y (m)')
@@ -448,7 +445,7 @@ def main():
 
     if not os.path.exists(watch_dir):
         print(f"Watch directory does not exist: {watch_dir}")
-        print(f"Set CFD_VIZ_DATA_DIR environment variable to specify data location.")
+        print("Set CFD_VIZ_DATA_DIR environment variable to specify data location.")
         return
 
     try:

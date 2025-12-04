@@ -16,25 +16,25 @@ Usage:
     python cross_section_analyzer.py [vtk_file] [options]
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.widgets import Button
-from scipy.interpolate import RegularGridInterpolator
 import argparse
-import glob
 import os
 import sys
 
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.interpolate import RegularGridInterpolator
+
 # Add parent directory to path for config import
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import DATA_DIR, PLOTS_DIR, find_vtk_files, ensure_dirs
+from config import DATA_DIR, PLOTS_DIR, ensure_dirs, find_vtk_files
+
 
 def read_vtk_file(filename):
     """Read a VTK structured points file and extract all data"""
     print(f"Reading VTK file: {filename}")
 
     try:
-        with open(filename, 'r') as f:
+        with open(filename) as f:
             lines = f.readlines()
     except FileNotFoundError:
         print(f"Error: File {filename} not found")
@@ -165,7 +165,7 @@ def create_cross_section_analysis(data, output_dir="visualization_output"):
     X, Y = np.meshgrid(x, y)
 
     # Create main figure
-    fig = plt.figure(figsize=(20, 16))
+    plt.figure(figsize=(20, 16))
 
     # 1. Velocity magnitude with analysis lines
     ax1 = plt.subplot(3, 4, 1)
@@ -338,7 +338,7 @@ def create_cross_section_analysis(data, output_dir="visualization_output"):
     Boundary Layer:
     """
 
-    for i, profile in enumerate(bl_profiles):
+    for profile in bl_profiles:
         if not np.isnan(profile['bl_thickness']):
             stats_text += f"  δ at x={profile['x_location']:.2f}: {profile['bl_thickness']:.4f} m\n"
 
@@ -352,8 +352,6 @@ def create_cross_section_analysis(data, output_dir="visualization_output"):
     # Calculate streamwise averages
     u_avg_y = np.mean(u, axis=1)  # Average across x for each y
     v_avg_y = np.mean(v, axis=1)
-    u_avg_x = np.mean(u, axis=0)  # Average across y for each x
-    v_avg_x = np.mean(v, axis=0)
 
     ax12.plot(u_avg_y, y, 'b-', linewidth=2, label='<u> vs y')
     ax12.plot(v_avg_y, y, 'r-', linewidth=2, label='<v> vs y')
@@ -475,8 +473,8 @@ def main():
             input_file = str(vtk_files[0])
             print(f"Using file: {input_file}")
         else:
-            print(f"No VTK file specified. Use --help for usage information.")
-            print(f"Set CFD_VIZ_DATA_DIR environment variable to specify data location.")
+            print("No VTK file specified. Use --help for usage information.")
+            print("Set CFD_VIZ_DATA_DIR environment variable to specify data location.")
             return
 
     # Read and analyze data

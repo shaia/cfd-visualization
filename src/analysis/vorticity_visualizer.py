@@ -16,21 +16,17 @@ Usage:
     python vorticity_visualizer.py [vtk_file] [options]
 """
 
-from typing import Any, Dict, Optional
-
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from matplotlib.colors import Normalize, LinearSegmentedColormap
-from scipy import ndimage
 import argparse
-import glob
 import os
 import sys
+from typing import Any, Dict, Optional
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import DATA_DIR, PLOTS_DIR, find_vtk_files, ensure_dirs
+from config import DATA_DIR, PLOTS_DIR, ensure_dirs, find_vtk_files
 from vtk_reader import read_vtk_file as _read_vtk_file
 
 
@@ -146,7 +142,7 @@ def create_vorticity_visualization(data, output_dir="visualization_output"):
     X, Y = np.meshgrid(x, y)
 
     # Create figure with subplots
-    fig = plt.figure(figsize=(16, 12))
+    plt.figure(figsize=(16, 12))
 
     # 1. Vorticity contours
     ax1 = plt.subplot(2, 3, 1)
@@ -246,7 +242,7 @@ def create_vorticity_visualization(data, output_dir="visualization_output"):
     Circulation Values:
     """
 
-    for i, (r, circ) in enumerate(zip(radii, circulations)):
+    for r, circ in zip(radii, circulations):
         stats_text += f"  r={r:.3f}: Γ={circ:.4f}\n"
 
     ax6.text(0.05, 0.95, stats_text, transform=ax6.transAxes,
@@ -298,8 +294,8 @@ def main():
             input_file = str(vtk_files[0])
             print(f"Using file: {input_file}")
         else:
-            print(f"No VTK file specified. Use --help for usage information.")
-            print(f"Set CFD_VIZ_DATA_DIR environment variable to specify data location.")
+            print("No VTK file specified. Use --help for usage information.")
+            print("Set CFD_VIZ_DATA_DIR environment variable to specify data location.")
             return
 
     # Read and analyze data

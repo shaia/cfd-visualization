@@ -4,19 +4,19 @@ Advanced CFD Visualization Script
 Creates complex and interactive visualizations from VTK output files
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from matplotlib.patches import Circle
-import os
-import matplotlib.patches as patches
-from matplotlib.colors import LinearSegmentedColormap
-import matplotlib.gridspec as gridspec
 import glob
+import os
+
+import matplotlib.animation as animation
+import matplotlib.gridspec as gridspec
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.colors import LinearSegmentedColormap
+
 
 def read_vtk_file(filename):
     """Read a VTK structured points file and extract data"""
-    with open(filename, 'r') as f:
+    with open(filename) as f:
         lines = f.readlines()
 
     # Parse header
@@ -215,9 +215,9 @@ def create_multi_panel_animation(vtk_files, save_animation=True):
         ax5.set_title('Streamlines', fontsize=12, fontweight='bold')
 
         # Combined view with contours
-        im7 = ax7.imshow(data['velocity_mag'], extent=[X.min(), X.max(), Y.min(), Y.max()],
-                         origin='lower', aspect='auto', vmin=vel_min, vmax=vel_max,
-                         cmap=custom_cmap, alpha=0.7)
+        ax7.imshow(data['velocity_mag'], extent=[X.min(), X.max(), Y.min(), Y.max()],
+                   origin='lower', aspect='auto', vmin=vel_min, vmax=vel_max,
+                   cmap=custom_cmap, alpha=0.7)
 
         # Add pressure contours
         contours = ax7.contour(X, Y, data['p'], levels=10, colors='white', linewidths=1, alpha=0.8)
@@ -261,7 +261,6 @@ def create_multi_panel_animation(vtk_files, save_animation=True):
 
 def create_3d_surface_animation(vtk_files, field='velocity_mag', save_animation=True):
     """Create 3D surface animation"""
-    from mpl_toolkits.mplot3d import Axes3D
 
     frames_data = []
     times = []
@@ -301,8 +300,8 @@ def create_3d_surface_animation(vtk_files, field='velocity_mag', save_animation=
         ax.clear()
 
         # Create 3D surface
-        surf = ax.plot_surface(X, Y, frames_data[frame], cmap='viridis',
-                              vmin=vmin, vmax=vmax, alpha=0.8, linewidth=0, antialiased=True)
+        ax.plot_surface(X, Y, frames_data[frame], cmap='viridis',
+                        vmin=vmin, vmax=vmax, alpha=0.8, linewidth=0, antialiased=True)
 
         # Add contour lines at bottom
         ax.contour(X, Y, frames_data[frame], zdir='z', offset=vmin-0.1*(vmax-vmin),
@@ -378,8 +377,8 @@ def create_particle_trace_animation(vtk_files, save_animation=True):
 
         # Background velocity magnitude
         velocity_mag = np.sqrt(data['u']**2 + data['v']**2)
-        im = ax.imshow(velocity_mag, extent=[X.min(), X.max(), Y.min(), Y.max()],
-                       origin='lower', aspect='auto', cmap='Blues', alpha=0.6)
+        ax.imshow(velocity_mag, extent=[X.min(), X.max(), Y.min(), Y.max()],
+                  origin='lower', aspect='auto', cmap='Blues', alpha=0.6)
 
         # Update particle positions
         dt = 0.01
