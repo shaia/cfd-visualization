@@ -14,8 +14,8 @@ Requirements:
     cfd-python, numpy, matplotlib, scipy
 """
 
-import sys
 import os
+import sys
 from typing import Optional
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -30,11 +30,11 @@ except ImportError:
     CFD_AVAILABLE = False
 
 from vorticity_visualizer import (
-    read_vtk_file,
-    calculate_vorticity,
     calculate_q_criterion,
+    calculate_vorticity,
+    create_vorticity_visualization,
     detect_vortex_cores,
-    create_vorticity_visualization
+    read_vtk_file,
 )
 
 
@@ -53,7 +53,7 @@ def run_simulation() -> Optional[str]:
     print("(This generates vortical flow patterns)")
 
     # Lid-driven cavity produces interesting vorticity patterns
-    result = cfd_python.run_simulation_with_params(
+    cfd_python.run_simulation_with_params(
         nx=80,
         ny=80,
         xmin=0.0,
@@ -61,8 +61,8 @@ def run_simulation() -> Optional[str]:
         ymin=0.0,
         ymax=1.0,
         steps=500,
-        solver_type='projection',
-        output_file=output_file
+        solver_type="projection",
+        output_file=output_file,
     )
 
     print(f"Simulation complete: {output_file}")

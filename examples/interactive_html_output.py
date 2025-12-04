@@ -14,8 +14,8 @@ Features:
 - Self-contained HTML file
 """
 
-import sys
 import os
+import sys
 from typing import Optional
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -51,7 +51,7 @@ def run_simulation() -> Optional[str]:
     output_file = str(DATA_DIR / "interactive_output.vtk")
 
     print("Running simulation...")
-    result = cfd_python.run_simulation_with_params(
+    cfd_python.run_simulation_with_params(
         nx=50,
         ny=50,
         xmin=0.0,
@@ -59,8 +59,8 @@ def run_simulation() -> Optional[str]:
         ymin=0.0,
         ymax=1.0,
         steps=200,
-        solver_type='projection',
-        output_file=output_file
+        solver_type="projection",
+        output_file=output_file,
     )
 
     print(f"Simulation complete: {output_file}")

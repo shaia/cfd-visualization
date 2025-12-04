@@ -11,29 +11,24 @@ converges as the mesh is refined. Creates comparison plots showing:
 This is a standard CFD verification technique to ensure mesh-independent results.
 """
 
-import sys
 import os
+import sys
+from typing import Any, Dict, List
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+
+import cfd_python
+import matplotlib.pyplot as plt
 
 from config import DATA_DIR, PLOTS_DIR, ensure_dirs
 
-try:
-    import cfd_python
-    CFD_AVAILABLE = True
-except ImportError:
-    CFD_AVAILABLE = False
 
-import numpy as np
-import matplotlib.pyplot as plt
+def run_convergence_study() -> List[Dict[str, Any]]:
+    """Run simulations at multiple grid resolutions.
 
-
-def run_convergence_study():
-    """Run simulations at multiple grid resolutions"""
-
-    if not CFD_AVAILABLE:
-        print("Error: cfd-python not available")
-        return None
-
+    Returns:
+        List of result dictionaries containing grid info and statistics.
+    """
     ensure_dirs()
     cfd_python.set_output_dir(str(DATA_DIR))
 
@@ -92,9 +87,15 @@ def run_convergence_study():
     return results
 
 
-def create_convergence_plot(results):
-    """Create plot showing convergence of maximum velocity with grid size"""
+def create_convergence_plot(results: List[Dict[str, Any]]) -> str:
+    """Create plot showing convergence of maximum velocity with grid size.
 
+    Args:
+        results: List of result dictionaries from run_convergence_study.
+
+    Returns:
+        Path to the saved plot file.
+    """
     print()
     print("Creating convergence plot...")
 
@@ -113,16 +114,19 @@ def create_convergence_plot(results):
     # Add Richardson extrapolation estimate if we have enough points
     if len(grid_sizes) >= 3:
         # Estimate converged value using last 3 points
-        h = [1.0/n for n in grid_sizes[-3:]]
+        h = [1.0 / n for n in grid_sizes[-3:]]
         f = max_velocities[-3:]
 
         # Simple extrapolation
         extrapolated = f[-1] + (f[-1] - f[-2]) * h[-1] / (h[-2] - h[-1])
-        ax1.axhline(y=extrapolated, color='r', linestyle='--', label=f'Extrapolated: {extrapolated:.6f}')
+        ax1.axhline(
+            y=extrapolated, color='r', linestyle='--',
+            label=f'Extrapolated: {extrapolated:.6f}'
+        )
         ax1.legend()
 
     # Plot 2: Log-log plot for convergence rate
-    h_values = [1.0/n for n in grid_sizes]
+    h_values = [1.0 / n for n in grid_sizes]
     ax2.loglog(h_values, max_velocities, 'bo-', linewidth=2, markersize=8)
     ax2.set_xlabel('Grid Spacing (h = 1/N)')
     ax2.set_ylabel('Maximum Velocity')
@@ -133,22 +137,29 @@ def create_convergence_plot(results):
 
     output_file = str(PLOTS_DIR / 'grid_convergence.png')
     plt.savefig(output_file, dpi=150, bbox_inches='tight')
-    plt.close()
+    plt.close(fig)
 
     print(f"  Saved: {output_file}")
 
     return output_file
 
 
-def create_comparison_plot(results):
-    """Create side-by-side comparison of velocity fields at different resolutions"""
-    from visualize_cfd import read_vtk_file, create_velocity_magnitude
+def create_comparison_plot(results: List[Dict[str, Any]]) -> str:
+    """Create side-by-side comparison of velocity fields at different resolutions.
+
+    Args:
+        results: List of result dictionaries from run_convergence_study.
+
+    Returns:
+        Path to the saved plot file.
+    """
+    from visualize_cfd import create_velocity_magnitude, read_vtk_file
 
     print()
     print("Creating comparison plot...")
 
     # Select subset of results to show (first, middle, last)
-    indices = [0, len(results)//2, -1]
+    indices = [0, len(results) // 2, -1]
     selected = [results[i] for i in indices]
 
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
@@ -165,7 +176,9 @@ def create_comparison_plot(results):
                 contour = ax.contourf(X, Y, vel_mag, levels=20, cmap='viridis')
                 plt.colorbar(contour, ax=ax, label='Velocity')
             elif 'velocity_magnitude' in data:
-                contour = ax.contourf(X, Y, data['velocity_magnitude'], levels=20, cmap='viridis')
+                contour = ax.contourf(
+                    X, Y, data['velocity_magnitude'], levels=20, cmap='viridis'
+                )
                 plt.colorbar(contour, ax=ax, label='Velocity')
 
         ax.set_xlabel('X')
@@ -178,16 +191,19 @@ def create_comparison_plot(results):
 
     output_file = str(PLOTS_DIR / 'grid_comparison.png')
     plt.savefig(output_file, dpi=150, bbox_inches='tight')
-    plt.close()
+    plt.close(fig)
 
     print(f"  Saved: {output_file}")
 
     return output_file
 
 
-def print_summary(results):
-    """Print summary of convergence study"""
+def print_summary(results: List[Dict[str, Any]]) -> None:
+    """Print summary of convergence study.
 
+    Args:
+        results: List of result dictionaries from run_convergence_study.
+    """
     print()
     print("=" * 50)
     print("Grid Convergence Summary")
@@ -199,32 +215,29 @@ def print_summary(results):
     prev_vel = None
     for r in results:
         change = ""
-        if prev_vel is not None:
+        if prev_vel is not None and prev_vel != 0:
             pct = abs(r['max_velocity'] - prev_vel) / prev_vel * 100
             change = f"{pct:.2f}%"
         print(f"{r['nx']:>4}x{r['ny']:<4} {r['max_velocity']:>15.6f} {change:>12}")
         prev_vel = r['max_velocity']
 
     # Check if converged (< 1% change between last two)
-    if len(results) >= 2:
+    if len(results) >= 2 and results[-2]['max_velocity'] != 0:
         last_change = abs(results[-1]['max_velocity'] - results[-2]['max_velocity'])
         pct_change = last_change / results[-2]['max_velocity'] * 100
         print()
         if pct_change < 1.0:
-            print(f"Solution appears CONVERGED (< 1% change at finest grid)")
+            print("Solution appears CONVERGED (< 1% change at finest grid)")
         else:
             print(f"Solution may need finer grid (>{pct_change:.1f}% change)")
 
 
-def main():
+def main() -> None:
+    """Main entry point for grid convergence study."""
     ensure_dirs()
 
     # Run convergence study
     results = run_convergence_study()
-
-    if results is None:
-        print("Study failed!")
-        return
 
     # Create visualizations
     create_convergence_plot(results)

@@ -12,12 +12,12 @@ Arrows show both the direction and magnitude of the flow field.
 Output: lid_driven_cavity_vectors.gif
 """
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from config import DATA_DIR, ANIMATIONS_DIR, ensure_dirs
+from config import ANIMATIONS_DIR, DATA_DIR, ensure_dirs
 from vtk_reader import read_vtk_velocity
 
 try:
@@ -26,10 +26,11 @@ try:
 except ImportError:
     CFD_AVAILABLE = False
 
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 import glob
+
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 def run_simulation() -> bool:
@@ -66,7 +67,7 @@ def run_simulation() -> bool:
     for step in range(output_interval, total_steps + 1, output_interval):
         output_file = str(DATA_DIR / f"lid_cavity_vec_{step:04d}.vtk")
 
-        result = cfd_python.run_simulation_with_params(
+        cfd_python.run_simulation_with_params(
             nx=nx,
             ny=ny,
             xmin=0.0,
@@ -75,7 +76,7 @@ def run_simulation() -> bool:
             ymax=1.0,
             steps=step,
             solver_type=solver,
-            output_file=output_file
+            output_file=output_file,
         )
 
         print(f"  Step {step}: saved {os.path.basename(output_file)}")
@@ -111,8 +112,8 @@ def create_vector_animation():
         if u is not None and v is not None:
             frames_data.append((u, v))
             try:
-                step = int(os.path.basename(filename).split('_')[-1].split('.')[0])
-            except:
+                step = int(os.path.basename(filename).split("_")[-1].split(".")[0])
+            except ValueError:
                 step = len(times)
             times.append(step)
 
@@ -139,7 +140,7 @@ def create_vector_animation():
                   cmap='plasma', scale=None, angles='xy')
 
     # Add colorbar
-    cbar = plt.colorbar(Q, ax=ax, label='Velocity Magnitude')
+    plt.colorbar(Q, ax=ax, label="Velocity Magnitude")
 
     ax.set_xlabel('X')
     ax.set_ylabel('Y')

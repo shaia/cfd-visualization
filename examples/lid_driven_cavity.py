@@ -10,12 +10,14 @@ This creates a primary vortex in the center and secondary vortices
 in the corners at higher Reynolds numbers.
 """
 
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from run_simulation import run_simulation
 from config import ensure_dirs
+from run_simulation import run_simulation
+
 
 def main():
     ensure_dirs()

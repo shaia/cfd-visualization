@@ -7,8 +7,9 @@ Run the same problem with different solvers to compare
 convergence rates and performance.
 """
 
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from config import DATA_DIR, ensure_dirs
