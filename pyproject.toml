@@ -1,0 +1,61 @@
+[project]
+name = "cfd-visualization"
+version = "0.1.0"
+description = "Visualization tools for CFD simulation output"
+requires-python = ">=3.8"
+
+[tool.ruff]
+# Target Python 3.8 for compatibility
+target-version = "py38"
+
+# Line length (PEP 8 recommends 79, but 88 is common for modern projects)
+line-length = 88
+
+# Exclude common directories
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info",
+    "data",
+    "output",
+]
+
+[tool.ruff.lint]
+# Enable pycodestyle (E), Pyflakes (F), isort (I), and more
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+]
+
+# Ignore specific rules
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "B008",   # do not perform function calls in argument defaults
+    "C408",   # unnecessary dict() call - often clearer for API kwargs
+]
+
+# Allow autofix for all enabled rules
+fixable = ["ALL"]
+unfixable = []
+
+[tool.ruff.lint.isort]
+# Group imports: standard library, third-party, local
+known-first-party = ["config", "vtk_reader", "visualize_cfd", "run_simulation"]
+
+[tool.ruff.format]
+# Use double quotes for strings
+quote-style = "double"
+
+# Indent with spaces
+indent-style = "space"
+
+# Unix-style line endings for cross-platform consistency
+line-ending = "lf"
