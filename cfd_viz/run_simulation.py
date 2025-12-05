@@ -25,20 +25,18 @@ Requirements:
 """
 
 import argparse
-import os
 import sys
 
-# Add parent directory to path for config import
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from config import DATA_DIR, ensure_dirs
+from cfd_viz.common import DATA_DIR, ensure_dirs
 
 CFD_AVAILABLE = False
 CFD_ERROR = None
 
 try:
     import cfd_python
+
     # Check if the C extension is actually available (not just the stub)
-    if hasattr(cfd_python, 'run_simulation'):
+    if hasattr(cfd_python, "run_simulation"):
         CFD_AVAILABLE = True
     else:
         CFD_ERROR = "cfd-python C extension not built. Run 'pip install -e .' in cfd-python directory."
@@ -96,15 +94,15 @@ def run_simulation(nx=100, ny=50, solver=None, num_iterations=1000):
             ymax=1.0,
             steps=num_iterations,
             solver_type=solver,
-            output_file=output_file
+            output_file=output_file,
         )
 
         print("\nSimulation complete!")
         if isinstance(result, dict):
             print(f"Output file: {result.get('output_file', output_file)}")
             print(f"Solver: {result.get('solver_name', 'N/A')}")
-            if 'stats' in result:
-                stats = result['stats']
+            if "stats" in result:
+                stats = result["stats"]
                 print(f"Max velocity: {stats.get('max_velocity', 'N/A')}")
 
         return True
@@ -117,7 +115,7 @@ def run_simulation(nx=100, ny=50, solver=None, num_iterations=1000):
 def main():
     """Main function"""
     parser = argparse.ArgumentParser(
-        description='Run CFD simulation and create visualizations',
+        description="Run CFD simulation and create visualizations",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -125,21 +123,38 @@ Examples:
   python run_simulation.py --visualize        # Run and visualize
   python run_simulation.py --nx 200 --ny 100  # Custom grid size
   python run_simulation.py --solver gauss_seidel
-        """
+        """,
     )
 
-    parser.add_argument('--nx', type=int, default=100,
-                       help='Grid points in x direction (default: 100)')
-    parser.add_argument('--ny', type=int, default=50,
-                       help='Grid points in y direction (default: 50)')
-    parser.add_argument('--solver', '-s', type=str, default=None,
-                       help='Solver type (jacobi, gauss_seidel, sor, etc.)')
-    parser.add_argument('--iterations', '-i', type=int, default=1000,
-                       help='Maximum iterations (default: 1000)')
-    parser.add_argument('--visualize', '-v', action='store_true',
-                       help='Create visualizations after simulation')
-    parser.add_argument('--list-solvers', action='store_true',
-                       help='List available solvers and exit')
+    parser.add_argument(
+        "--nx", type=int, default=100, help="Grid points in x direction (default: 100)"
+    )
+    parser.add_argument(
+        "--ny", type=int, default=50, help="Grid points in y direction (default: 50)"
+    )
+    parser.add_argument(
+        "--solver",
+        "-s",
+        type=str,
+        default=None,
+        help="Solver type (jacobi, gauss_seidel, sor, etc.)",
+    )
+    parser.add_argument(
+        "--iterations",
+        "-i",
+        type=int,
+        default=1000,
+        help="Maximum iterations (default: 1000)",
+    )
+    parser.add_argument(
+        "--visualize",
+        "-v",
+        action="store_true",
+        help="Create visualizations after simulation",
+    )
+    parser.add_argument(
+        "--list-solvers", action="store_true", help="List available solvers and exit"
+    )
 
     args = parser.parse_args()
 
@@ -160,10 +175,7 @@ Examples:
 
     # Run simulation
     success = run_simulation(
-        nx=args.nx,
-        ny=args.ny,
-        solver=args.solver,
-        num_iterations=args.iterations
+        nx=args.nx, ny=args.ny, solver=args.solver, num_iterations=args.iterations
     )
 
     if not success:
@@ -173,12 +185,13 @@ Examples:
     if args.visualize:
         print("\nCreating visualizations...")
         try:
-            from visualize_cfd import (
+            from cfd_viz.animation.animation import (
                 create_animations,
                 create_static_plots,
-                find_vtk_files,
             )
-            vtk_files = find_vtk_files()
+            from cfd_viz.common import find_vtk_files
+
+            vtk_files = [str(f) for f in find_vtk_files()]
             if vtk_files:
                 create_static_plots(vtk_files)
                 if len(vtk_files) > 1:

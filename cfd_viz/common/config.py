@@ -13,19 +13,19 @@ PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 
 # Default data directory for VTK input files
 # Can be overridden via CFD_VIZ_DATA_DIR environment variable
-DATA_DIR = Path(os.environ.get('CFD_VIZ_DATA_DIR', PROJECT_ROOT / 'data' / 'vtk_files'))
+DATA_DIR = Path(os.environ.get("CFD_VIZ_DATA_DIR", PROJECT_ROOT / "data" / "vtk_files"))
 
 # Output directory for visualizations
 # Can be overridden via CFD_VIZ_OUTPUT_DIR environment variable
-OUTPUT_DIR = Path(os.environ.get('CFD_VIZ_OUTPUT_DIR', PROJECT_ROOT / 'output'))
+OUTPUT_DIR = Path(os.environ.get("CFD_VIZ_OUTPUT_DIR", PROJECT_ROOT / "output"))
 
 # Subdirectories for different output types
-ANIMATIONS_DIR = OUTPUT_DIR / 'animations'
-PLOTS_DIR = OUTPUT_DIR / 'plots'
-HTML_DIR = OUTPUT_DIR / 'html'
+ANIMATIONS_DIR = OUTPUT_DIR / "animations"
+PLOTS_DIR = OUTPUT_DIR / "plots"
+HTML_DIR = OUTPUT_DIR / "html"
 
 # Default VTK file pattern
-DEFAULT_VTK_PATTERN = '*.vtk'
+DEFAULT_VTK_PATTERN = "*.vtk"
 
 
 def ensure_dirs():

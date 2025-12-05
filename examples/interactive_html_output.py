@@ -14,37 +14,22 @@ Features:
 - Self-contained HTML file
 """
 
-import os
-import sys
-from typing import Optional
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
-from config import DATA_DIR, OUTPUT_DIR, ensure_dirs
-from vtk_reader import read_vtk_file
-
-try:
-    import cfd_python
-    CFD_AVAILABLE = True
-except ImportError:
-    CFD_AVAILABLE = False
-
+import cfd_python
 import numpy as np
+
+from cfd_viz.common import DATA_DIR, PLOTS_DIR, ensure_dirs, read_vtk_file
 
 try:
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
+
     PLOTLY_AVAILABLE = True
 except ImportError:
     PLOTLY_AVAILABLE = False
 
 
-def run_simulation() -> Optional[str]:
+def run_simulation() -> str:
     """Run a simulation and return the output file path."""
-    if not CFD_AVAILABLE:
-        print("Error: cfd-python not available")
-        return None
-
     ensure_dirs()
     cfd_python.set_output_dir(str(DATA_DIR))
 
@@ -67,7 +52,7 @@ def run_simulation() -> Optional[str]:
     return output_file
 
 
-def create_html_visualization(vtk_file: str, output_file: str) -> Optional[str]:
+def create_html_visualization(vtk_file: str, output_file: str) -> str | None:
     """Create interactive HTML visualization from VTK data.
 
     Args:
@@ -92,8 +77,8 @@ def create_html_visualization(vtk_file: str, output_file: str) -> Optional[str]:
     # Calculate velocity magnitude
     if data.u is not None and data.v is not None:
         vel_mag = np.sqrt(data.u**2 + data.v**2)
-    elif 'velocity_magnitude' in data.fields:
-        vel_mag = data.fields['velocity_magnitude']
+    elif "velocity_magnitude" in data.fields:
+        vel_mag = data.fields["velocity_magnitude"]
     else:
         print("Error: No velocity data found")
         return None
@@ -102,9 +87,10 @@ def create_html_visualization(vtk_file: str, output_file: str) -> Optional[str]:
 
     # Create figure with subplots
     fig = make_subplots(
-        rows=1, cols=2,
-        subplot_titles=('Velocity Magnitude', 'Velocity Vectors'),
-        horizontal_spacing=0.1
+        rows=1,
+        cols=2,
+        subplot_titles=("Velocity Magnitude", "Velocity Vectors"),
+        horizontal_spacing=0.1,
     )
 
     # Velocity magnitude contour
@@ -113,11 +99,12 @@ def create_html_visualization(vtk_file: str, output_file: str) -> Optional[str]:
             x=X[0, :],
             y=Y[:, 0],
             z=vel_mag,
-            colorscale='Viridis',
-            colorbar=dict(title='Velocity', x=0.45),
-            name='Velocity Magnitude'
+            colorscale="Viridis",
+            colorbar=dict(title="Velocity", x=0.45),
+            name="Velocity Magnitude",
         ),
-        row=1, col=1
+        row=1,
+        col=1,
     )
 
     # Velocity vectors (subsample for clarity)
@@ -140,12 +127,13 @@ def create_html_visualization(vtk_file: str, output_file: str) -> Optional[str]:
             x=X[0, :],
             y=Y[:, 0],
             z=vel_mag,
-            colorscale='Viridis',
+            colorscale="Viridis",
             showscale=False,
             opacity=0.5,
-            name='Background'
+            name="Background",
         ),
-        row=1, col=2
+        row=1,
+        col=2,
     )
 
     # Add arrows as scatter with lines
@@ -155,33 +143,33 @@ def create_html_visualization(vtk_file: str, output_file: str) -> Optional[str]:
             y=yi + vi,
             ax=xi,
             ay=yi,
-            xref='x2',
-            yref='y2',
-            axref='x2',
-            ayref='y2',
+            xref="x2",
+            yref="y2",
+            axref="x2",
+            ayref="y2",
             showarrow=True,
             arrowhead=2,
             arrowsize=1,
             arrowwidth=1,
-            arrowcolor='black'
+            arrowcolor="black",
         )
 
     # Update layout
     fig.update_layout(
         title=dict(
-            text='CFD Simulation Results - Interactive Visualization',
-            font=dict(size=20)
+            text="CFD Simulation Results - Interactive Visualization",
+            font=dict(size=20),
         ),
         height=600,
         width=1200,
-        showlegend=False
+        showlegend=False,
     )
 
     # Set equal aspect ratio
-    fig.update_xaxes(title_text='X', row=1, col=1, scaleanchor='y', scaleratio=1)
-    fig.update_yaxes(title_text='Y', row=1, col=1)
-    fig.update_xaxes(title_text='X', row=1, col=2, scaleanchor='y2', scaleratio=1)
-    fig.update_yaxes(title_text='Y', row=1, col=2)
+    fig.update_xaxes(title_text="X", row=1, col=1, scaleanchor="y", scaleratio=1)
+    fig.update_yaxes(title_text="Y", row=1, col=1)
+    fig.update_xaxes(title_text="X", row=1, col=2, scaleanchor="y2", scaleratio=1)
+    fig.update_yaxes(title_text="Y", row=1, col=2)
 
     # Save to HTML
     fig.write_html(output_file, include_plotlyjs=True, full_html=True)
@@ -203,13 +191,9 @@ def main() -> None:
     print("=" * 40)
     print()
 
-    # Run simulation
+    # Run simulation and create HTML output
     vtk_file = run_simulation()
-    if vtk_file is None:
-        return
-
-    # Create HTML output
-    html_file = str(OUTPUT_DIR / "interactive_cfd_visualization.html")
+    html_file = str(PLOTS_DIR / "interactive_cfd_visualization.html")
     result = create_html_visualization(vtk_file, html_file)
 
     if result:
