@@ -57,5 +57,5 @@ quote-style = "double"
 # Indent with spaces
 indent-style = "space"
 
-# Unix-style line endings
-line-ending = "auto"
+# Unix-style line endings for cross-platform consistency
+line-ending = "lf"
