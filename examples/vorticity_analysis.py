@@ -3,7 +3,7 @@
 Vorticity Analysis Example
 ==========================
 
-Demonstrates vorticity and circulation analysis using the vorticity_visualizer
+Demonstrates vorticity and circulation analysis using the analysis.vorticity
 module. Runs a simulation and analyzes the resulting flow field for:
 - Vorticity field visualization
 - Q-criterion for vortex identification
@@ -14,36 +14,20 @@ Requirements:
     cfd-python, numpy, matplotlib, scipy
 """
 
-import os
-import sys
-from typing import Optional
+import cfd_python
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'analysis'))
-
-from config import DATA_DIR, PLOTS_DIR, ensure_dirs
-
-try:
-    import cfd_python
-    CFD_AVAILABLE = True
-except ImportError:
-    CFD_AVAILABLE = False
-
-from vorticity_visualizer import (
+from cfd_viz.analysis.vorticity import (
     calculate_q_criterion,
     calculate_vorticity,
     create_vorticity_visualization,
     detect_vortex_cores,
     read_vtk_file,
 )
+from cfd_viz.common import DATA_DIR, PLOTS_DIR, ensure_dirs
 
 
-def run_simulation() -> Optional[str]:
+def run_simulation() -> str:
     """Run a lid-driven cavity simulation to generate vortical flow."""
-    if not CFD_AVAILABLE:
-        print("Error: cfd-python not available")
-        return None
-
     ensure_dirs()
     cfd_python.set_output_dir(str(DATA_DIR))
 
@@ -83,11 +67,11 @@ def analyze_vorticity(vtk_file: str) -> None:
 
     # Calculate vorticity
     print("\nCalculating vorticity field...")
-    vorticity = calculate_vorticity(data['u'], data['v'], data['dx'], data['dy'])
+    vorticity = calculate_vorticity(data["u"], data["v"], data["dx"], data["dy"])
 
     # Calculate Q-criterion
     print("Calculating Q-criterion...")
-    Q = calculate_q_criterion(data['u'], data['v'], data['dx'], data['dy'])
+    Q = calculate_q_criterion(data["u"], data["v"], data["dx"], data["dy"])
 
     # Detect vortex cores
     print("Detecting vortex cores...")
@@ -121,12 +105,8 @@ def main() -> None:
     print("=" * 50)
     print()
 
-    # Run simulation
+    # Run simulation and analyze vorticity
     vtk_file = run_simulation()
-    if vtk_file is None:
-        return
-
-    # Analyze vorticity
     analyze_vorticity(vtk_file)
 
 

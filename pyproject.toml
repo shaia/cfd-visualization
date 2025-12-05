@@ -3,6 +3,23 @@ name = "cfd-visualization"
 version = "0.1.0"
 description = "Visualization tools for CFD simulation output"
 requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "scipy",
+    "pandas",
+    "watchdog",
+]
+
+[project.optional-dependencies]
+interactive = ["plotly", "dash"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["cfd_viz"]
 
 [tool.ruff]
 # Target Python 3.8 for compatibility
@@ -48,7 +65,7 @@ unfixable = []
 
 [tool.ruff.lint.isort]
 # Group imports: standard library, third-party, local
-known-first-party = ["config", "vtk_reader", "visualize_cfd", "run_simulation"]
+known-first-party = ["cfd_viz"]
 
 [tool.ruff.format]
 # Use double quotes for strings

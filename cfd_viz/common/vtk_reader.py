@@ -29,7 +29,7 @@ class VTKData:
         nx: int,
         ny: int,
         dx: float,
-        dy: float
+        dy: float,
     ):
         self.x = x
         self.y = y
@@ -44,12 +44,12 @@ class VTKData:
     @property
     def u(self) -> Optional[NDArray]:
         """X-velocity component."""
-        return self.fields.get('u')
+        return self.fields.get("u")
 
     @property
     def v(self) -> Optional[NDArray]:
         """Y-velocity component."""
-        return self.fields.get('v')
+        return self.fields.get("v")
 
     def __getitem__(self, key: str) -> NDArray:
         """Access fields by name."""
@@ -66,14 +66,14 @@ class VTKData:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary format for backward compatibility."""
         result = {
-            'x': self.x,
-            'y': self.y,
-            'X': self.X,
-            'Y': self.Y,
-            'nx': self.nx,
-            'ny': self.ny,
-            'dx': self.dx,
-            'dy': self.dy,
+            "x": self.x,
+            "y": self.y,
+            "X": self.X,
+            "Y": self.Y,
+            "nx": self.nx,
+            "ny": self.ny,
+            "dx": self.dx,
+            "dy": self.dy,
         }
         result.update(self.fields)
         return result
@@ -114,19 +114,19 @@ def read_vtk_file(filename: str) -> Optional[VTKData]:
     while i < len(lines):
         line = lines[i].strip()
 
-        if line.startswith('DIMENSIONS'):
+        if line.startswith("DIMENSIONS"):
             parts = line.split()
             nx, ny = int(parts[1]), int(parts[2])
 
-        elif line.startswith('ORIGIN'):
+        elif line.startswith("ORIGIN"):
             parts = line.split()
             origin = [float(parts[1]), float(parts[2]), float(parts[3])]
 
-        elif line.startswith('SPACING'):
+        elif line.startswith("SPACING"):
             parts = line.split()
             spacing = [float(parts[1]), float(parts[2]), float(parts[3])]
 
-        elif line.startswith('X_COORDINATES'):
+        elif line.startswith("X_COORDINATES"):
             n = int(line.split()[1])
             i += 1
             x_coords = []
@@ -135,7 +135,7 @@ def read_vtk_file(filename: str) -> Optional[VTKData]:
                 i += 1
             i -= 1
 
-        elif line.startswith('Y_COORDINATES'):
+        elif line.startswith("Y_COORDINATES"):
             n = int(line.split()[1])
             i += 1
             y_coords = []
@@ -144,10 +144,10 @@ def read_vtk_file(filename: str) -> Optional[VTKData]:
                 i += 1
             i -= 1
 
-        elif line.startswith('POINT_DATA'):
+        elif line.startswith("POINT_DATA"):
             pass  # POINT_DATA marks start of field data, processed by subsequent sections
 
-        elif line.startswith('VECTORS'):
+        elif line.startswith("VECTORS"):
             # Parse VECTORS format: each line has 3 components (u, v, w)
             i += 1
             u_values = []
@@ -164,15 +164,15 @@ def read_vtk_file(filename: str) -> Optional[VTKData]:
                 else:
                     break
             if u_values:
-                fields['u'] = np.array(u_values).reshape((ny, nx))
-                fields['v'] = np.array(v_values).reshape((ny, nx))
+                fields["u"] = np.array(u_values).reshape((ny, nx))
+                fields["v"] = np.array(v_values).reshape((ny, nx))
             continue
 
-        elif line.startswith('SCALARS'):
+        elif line.startswith("SCALARS"):
             field_name = line.split()[1]
             i += 1
             # Skip LOOKUP_TABLE line if present
-            if i < len(lines) and lines[i].strip().startswith('LOOKUP_TABLE'):
+            if i < len(lines) and lines[i].strip().startswith("LOOKUP_TABLE"):
                 i += 1
 
             values = []
@@ -216,17 +216,12 @@ def read_vtk_file(filename: str) -> Optional[VTKData]:
 
     X, Y = np.meshgrid(x, y)
 
-    return VTKData(
-        x=x, y=y, X=X, Y=Y,
-        fields=fields,
-        nx=nx, ny=ny, dx=dx, dy=dy
-    )
+    return VTKData(x=x, y=y, X=X, Y=Y, fields=fields, nx=nx, ny=ny, dx=dx, dy=dy)
 
 
-def read_vtk_velocity(filename: str) -> Tuple[
-    Optional[NDArray], Optional[NDArray],
-    Optional[NDArray], Optional[NDArray]
-]:
+def read_vtk_velocity(
+    filename: str,
+) -> Tuple[Optional[NDArray], Optional[NDArray], Optional[NDArray], Optional[NDArray]]:
     """Read VTK file and return grid coordinates and velocity components.
 
     Convenience function for scripts that only need velocity data.

@@ -12,33 +12,19 @@ Arrows show both the direction and magnitude of the flow field.
 Output: lid_driven_cavity_vectors.gif
 """
 
-import os
-import sys
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
-from config import ANIMATIONS_DIR, DATA_DIR, ensure_dirs
-from vtk_reader import read_vtk_velocity
-
-try:
-    import cfd_python
-    CFD_AVAILABLE = True
-except ImportError:
-    CFD_AVAILABLE = False
-
 import glob
+import os
 
+import cfd_python
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
 
+from cfd_viz.common import ANIMATIONS_DIR, DATA_DIR, ensure_dirs, read_vtk_file
+
 
 def run_simulation() -> bool:
     """Run simulation with multiple outputs for animation."""
-    if not CFD_AVAILABLE:
-        print("Error: cfd-python not available")
-        return False
-
     ensure_dirs()
     cfd_python.set_output_dir(str(DATA_DIR))
 
@@ -54,7 +40,7 @@ def run_simulation() -> bool:
     output_interval = 40  # 10 frames
 
     available_solvers = cfd_python.list_solvers()
-    solver = 'projection' if 'projection' in available_solvers else available_solvers[0]
+    solver = "projection" if "projection" in available_solvers else available_solvers[0]
 
     print(f"Grid: {nx} x {ny}")
     print(f"Total steps: {total_steps}")
@@ -108,9 +94,10 @@ def create_vector_animation():
     X, Y = None, None
 
     for filename in vtk_files:
-        X, Y, u, v = read_vtk_velocity(filename)
-        if u is not None and v is not None:
-            frames_data.append((u, v))
+        data = read_vtk_file(filename)
+        if data is not None and data.u is not None and data.v is not None:
+            X, Y = data.X, data.Y
+            frames_data.append((data.u, data.v))
             try:
                 step = int(os.path.basename(filename).split("_")[-1].split(".")[0])
             except ValueError:
@@ -136,23 +123,30 @@ def create_vector_animation():
     speed = np.sqrt(u_sub**2 + v_sub**2)
 
     # Create quiver plot
-    Q = ax.quiver(X_sub, Y_sub, u_sub, v_sub, speed,
-                  cmap='plasma', scale=None, angles='xy')
+    Q = ax.quiver(
+        X_sub, Y_sub, u_sub, v_sub, speed, cmap="plasma", scale=None, angles="xy"
+    )
 
     # Add colorbar
     plt.colorbar(Q, ax=ax, label="Velocity Magnitude")
 
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_title('Vector Field Animation')
-    ax.set_aspect('equal')
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_title("Vector Field Animation")
+    ax.set_aspect("equal")
     ax.set_xlim(X.min(), X.max())
     ax.set_ylim(Y.min(), Y.max())
 
     # Time text
-    time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes,
-                        fontsize=12, verticalalignment='top',
-                        bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
+    time_text = ax.text(
+        0.02,
+        0.95,
+        "",
+        transform=ax.transAxes,
+        fontsize=12,
+        verticalalignment="top",
+        bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),
+    )
 
     def animate(frame):
         u, v = frames_data[frame]
@@ -161,15 +155,16 @@ def create_vector_animation():
         speed = np.sqrt(u_sub**2 + v_sub**2)
 
         Q.set_UVC(u_sub, v_sub, speed)
-        time_text.set_text(f'Step: {times[frame]}')
+        time_text.set_text(f"Step: {times[frame]}")
         return Q, time_text
 
-    anim = animation.FuncAnimation(fig, animate, frames=len(frames_data),
-                                   interval=300, blit=False, repeat=True)
+    anim = animation.FuncAnimation(
+        fig, animate, frames=len(frames_data), interval=300, blit=False, repeat=True
+    )
 
-    output_file = str(ANIMATIONS_DIR / 'lid_driven_cavity_vectors.gif')
+    output_file = str(ANIMATIONS_DIR / "lid_driven_cavity_vectors.gif")
     print(f"Saving animation to {output_file}...")
-    anim.save(output_file, writer='pillow', fps=4)
+    anim.save(output_file, writer="pillow", fps=4)
     print("Animation saved!")
 
     plt.close()

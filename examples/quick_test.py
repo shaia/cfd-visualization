@@ -7,13 +7,8 @@ Small, fast simulation to verify everything is working.
 Good for testing the setup before running larger simulations.
 """
 
-import os
-import sys
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
-from config import ensure_dirs
-from run_simulation import run_simulation
+from cfd_viz.common import ensure_dirs
+from cfd_viz.run_simulation import run_simulation
 
 
 def main():
@@ -30,7 +25,7 @@ def main():
         nx=50,
         ny=50,
         solver=None,  # Use default
-        num_iterations=500
+        num_iterations=500,
     )
 
     if success:
@@ -39,6 +34,7 @@ def main():
         print("  python src/visualize_cfd.py --all")
     else:
         print("\nTest failed. Check cfd-python installation.")
+
 
 if __name__ == "__main__":
     main()
