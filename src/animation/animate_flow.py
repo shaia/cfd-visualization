@@ -14,21 +14,23 @@ Usage:
     python animate_flow.py [animation_directory]
 """
 
-import numpy as np
 import matplotlib
+import numpy as np
+
 matplotlib.use('Agg')  # Use non-interactive backend
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from matplotlib.colors import Normalize
-import sys
-import os
 import glob
+import os
 import re
+import sys
+
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+
 
 def read_vtk_structured_points(filename):
     """Read VTK structured points file and extract data"""
     try:
-        with open(filename, 'r') as file:
+        with open(filename) as file:
             lines = file.readlines()
     except FileNotFoundError:
         print(f"Error: File {filename} not found")
@@ -174,19 +176,19 @@ def create_flow_animation(animation_dir, output_filename="output/animations/flow
     ax1.set_xlabel('X')
     ax1.set_ylabel('Y')
     ax1.axis('equal')
-    cbar1 = plt.colorbar(im1, ax=ax1)
+    plt.colorbar(im1, ax=ax1)
 
-    im2 = ax2.quiver(first_data['X'][::subsample, ::subsample], first_data['Y'][::subsample, ::subsample],
-                     np.zeros((ny//subsample, nx//subsample)), np.zeros((ny//subsample, nx//subsample)),
-                     scale_units='xy', angles='xy')
+    ax2.quiver(first_data['X'][::subsample, ::subsample], first_data['Y'][::subsample, ::subsample],
+               np.zeros((ny//subsample, nx//subsample)), np.zeros((ny//subsample, nx//subsample)),
+               scale_units='xy', angles='xy')
     ax2.set_title('Velocity Vectors')
     ax2.set_xlabel('X')
     ax2.set_ylabel('Y')
     ax2.axis('equal')
 
-    im3 = ax3.streamplot(first_data['X'], first_data['Y'],
-                        np.zeros((ny, nx)), np.zeros((ny, nx)),
-                        density=2, linewidth=1, color='blue')
+    ax3.streamplot(first_data['X'], first_data['Y'],
+                   np.zeros((ny, nx)), np.zeros((ny, nx)),
+                   density=2, linewidth=1, color='blue')
     ax3.set_title('Flow Streamlines')
     ax3.set_xlabel('X')
     ax3.set_ylabel('Y')
@@ -197,7 +199,7 @@ def create_flow_animation(animation_dir, output_filename="output/animations/flow
     ax4.set_xlabel('X')
     ax4.set_ylabel('Y')
     ax4.axis('equal')
-    cbar4 = plt.colorbar(im4, ax=ax4)
+    plt.colorbar(im4, ax=ax4)
 
     # Add time text
     time_text = fig.text(0.02, 0.95, '', fontsize=12, bbox=dict(boxstyle="round,pad=0.3", facecolor="white"))
@@ -258,7 +260,7 @@ def create_flow_animation(animation_dir, output_filename="output/animations/flow
                 ax3.streamplot(data['X'], data['Y'], u, v,
                               color=velocity_mag, cmap='viridis',
                               density=2, linewidth=1)
-            except:
+            except ValueError:
                 # If streamplot fails (e.g., all velocities zero), show velocity magnitude
                 ax3.contourf(data['X'], data['Y'], velocity_mag, levels=20, cmap='viridis', alpha=0.7)
 
@@ -372,7 +374,7 @@ def create_individual_frames(animation_dir, output_dir="output/animations/animat
             try:
                 ax3.streamplot(data['X'], data['Y'], u, v,
                               color=velocity_mag, cmap='viridis', density=2)
-            except:
+            except ValueError:
                 ax3.contourf(data['X'], data['Y'], velocity_mag, levels=20, cmap='viridis')
             ax3.set_title('Flow Streamlines')
             ax3.axis('equal')
@@ -407,25 +409,25 @@ def main():
         print("Please run the animated_flow_simulation first!")
         return
 
-    print(f"CFD Flow Animation Tool")
-    print(f"======================")
+    print("CFD Flow Animation Tool")
+    print("======================")
     print(f"Animation directory: {animation_dir}")
 
     # Create output directory
     os.makedirs("output/animations", exist_ok=True)
 
     # Create animated MP4/GIF
-    print(f"\n1. Creating animated visualization...")
+    print("\n1. Creating animated visualization...")
     create_flow_animation(animation_dir, "output/animations/flow_animation.mp4", fps=8)
 
     # Create individual frames
-    print(f"\n2. Creating individual frames...")
+    print("\n2. Creating individual frames...")
     create_individual_frames(animation_dir, "animation_frames")
 
-    print(f"\nAnimation creation complete!")
-    print(f"Generated files:")
-    print(f"  - flow_animation.mp4 (or .gif)")
-    print(f"  - animation_frames/ directory with PNG frames")
+    print("\nAnimation creation complete!")
+    print("Generated files:")
+    print("  - flow_animation.mp4 (or .gif)")
+    print("  - animation_frames/ directory with PNG frames")
 
 if __name__ == "__main__":
     main()

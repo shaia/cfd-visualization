@@ -16,25 +16,24 @@ Usage:
     python parameter_study.py [options]
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-import pandas as pd
 import argparse
 import glob
 import os
 import sys
-from pathlib import Path
-import json
+
+import matplotlib.gridspec as gridspec
+import matplotlib.pyplot as plt
+import numpy as np
 
 # Add parent directory to path for config import
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import DATA_DIR, PLOTS_DIR, ensure_dirs
 
+
 def read_vtk_file(filename):
     """Read a VTK structured points file and extract all data"""
     try:
-        with open(filename, 'r') as f:
+        with open(filename) as f:
             lines = f.readlines()
     except FileNotFoundError:
         print(f"Error: File {filename} not found")
@@ -120,7 +119,7 @@ def extract_parameters_from_filename(filename):
             else:
                 try:
                     params[param] = float(match.group(1))
-                except:
+                except ValueError:
                     params[param] = match.group(1)
 
     return params
@@ -326,7 +325,7 @@ def compare_two_cases(data1, data2, case1_name, case2_name, output_dir):
 
     # Create table
     table = ax12.table(cellText=stats_data,
-                      colLabels=[f'Metric', case1_name, case2_name, 'Difference', '% Change'],
+                      colLabels=['Metric', case1_name, case2_name, 'Difference', '% Change'],
                       cellLoc='center',
                       loc='center')
 
@@ -342,7 +341,7 @@ def compare_two_cases(data1, data2, case1_name, case2_name, output_dir):
                 if abs(pct) > 10:
                     color = 'lightcoral' if pct > 0 else 'lightgreen'
                     table[(i+1, 4)].set_facecolor(color)
-            except:
+            except ValueError:
                 pass
 
     ax12.set_title('Detailed Metrics Comparison', fontsize=14, pad=20)
@@ -501,7 +500,7 @@ def main():
 
         if len(vtk_files) == 0:
             print(f"No VTK files found matching: {pattern}")
-            print(f"Set CFD_VIZ_DATA_DIR environment variable to specify data location.")
+            print("Set CFD_VIZ_DATA_DIR environment variable to specify data location.")
             return
 
         print(f"Found {len(vtk_files)} VTK files")

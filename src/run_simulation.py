@@ -25,8 +25,8 @@ Requirements:
 """
 
 import argparse
-import sys
 import os
+import sys
 
 # Add parent directory to path for config import
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -59,8 +59,8 @@ def run_simulation(nx=100, ny=50, solver=None, num_iterations=1000):
     # Set output directory to our centralized data directory
     cfd_python.set_output_dir(str(DATA_DIR))
 
-    print(f"CFD Simulation")
-    print(f"==============")
+    print("CFD Simulation")
+    print("==============")
     print(f"Grid: {nx} x {ny}")
     print(f"Iterations: {num_iterations}")
     print(f"Output directory: {DATA_DIR}")
@@ -80,7 +80,7 @@ def run_simulation(nx=100, ny=50, solver=None, num_iterations=1000):
         solver = available_solvers[0] if available_solvers else "jacobi"
 
     print(f"Using solver: {solver}")
-    print(f"\nRunning simulation...")
+    print("\nRunning simulation...")
 
     try:
         # Generate output filename
@@ -99,7 +99,7 @@ def run_simulation(nx=100, ny=50, solver=None, num_iterations=1000):
             output_file=output_file
         )
 
-        print(f"\nSimulation complete!")
+        print("\nSimulation complete!")
         if isinstance(result, dict):
             print(f"Output file: {result.get('output_file', output_file)}")
             print(f"Solver: {result.get('solver_name', 'N/A')}")
@@ -173,7 +173,11 @@ Examples:
     if args.visualize:
         print("\nCreating visualizations...")
         try:
-            from visualize_cfd import create_static_plots, create_animations, find_vtk_files
+            from visualize_cfd import (
+                create_animations,
+                create_static_plots,
+                find_vtk_files,
+            )
             vtk_files = find_vtk_files()
             if vtk_files:
                 create_static_plots(vtk_files)

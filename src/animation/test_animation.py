@@ -2,19 +2,19 @@
 """
 Quick test to generate individual frames from the animation data
 """
-import numpy as np
 import matplotlib
+import numpy as np
+
 matplotlib.use('Agg')  # Use non-interactive backend
-import matplotlib.pyplot as plt
-import sys
 import os
-import glob
-import re
+
+import matplotlib.pyplot as plt
+
 
 def read_vtk_structured_points(filename):
     """Read VTK structured points file and extract data"""
     try:
-        with open(filename, 'r') as file:
+        with open(filename) as file:
             lines = file.readlines()
     except FileNotFoundError:
         print(f"Error: File {filename} not found")

@@ -4,16 +4,18 @@ Interactive CFD Dashboard using Plotly
 Creates web-based interactive visualizations
 """
 
+import glob
+import os
+
 import numpy as np
 import plotly.graph_objects as go
 import plotly.subplots as sp
 from plotly.offline import plot
-import glob
-import os
+
 
 def read_vtk_file(filename):
     """Read a VTK structured points file and extract data"""
-    with open(filename, 'r') as f:
+    with open(filename) as f:
         lines = f.readlines()
 
     # Parse header
@@ -119,7 +121,7 @@ def create_interactive_dashboard(vtk_files):
     # Add frames for animation
     frames = []
 
-    for i, (data, time) in enumerate(zip(all_data, times)):
+    for frame_idx, data in enumerate(all_data):
         X, Y = np.meshgrid(data['x'], data['y'])
 
         frame_data = []
@@ -207,11 +209,9 @@ def create_interactive_dashboard(vtk_files):
         ))
 
         # 8. Time Series (placeholder)
-        avg_velocity = np.mean(data['velocity_mag'])
-        max_pressure = np.max(data['p'])
         frame_data.append(go.Scatter(
-            x=times[:i+1],
-            y=[np.mean(all_data[j]['velocity_mag']) for j in range(i+1)],
+            x=times[:frame_idx+1],
+            y=[np.mean(all_data[j]['velocity_mag']) for j in range(frame_idx+1)],
             mode='lines',
             name='Avg Velocity',
             showlegend=False
@@ -226,7 +226,7 @@ def create_interactive_dashboard(vtk_files):
             showscale=False
         ))
 
-        frames.append(go.Frame(data=frame_data, name=str(i)))
+        frames.append(go.Frame(data=frame_data, name=str(frame_idx)))
 
     # Add initial traces
     initial_data = all_data[0]
@@ -416,7 +416,7 @@ def create_flow_analysis_dashboard(vtk_files):
                 iteration = int(os.path.basename(filename).split('_')[-1].split('.')[0])
                 times.append(iteration)
 
-        except Exception as e:
+        except Exception:
             continue
 
     if not all_data:

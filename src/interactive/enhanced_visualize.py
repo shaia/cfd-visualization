@@ -4,17 +4,18 @@ Enhanced CFD Visualization Script - Simplified and Robust
 Creates complex visualizations from VTK output files
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from matplotlib.colors import LinearSegmentedColormap
-import os
-import matplotlib.gridspec as gridspec
 import glob
+import os
+
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.colors import LinearSegmentedColormap
+
 
 def read_vtk_file(filename):
     """Read a VTK structured points file and extract data"""
-    with open(filename, 'r') as f:
+    with open(filename) as f:
         lines = f.readlines()
 
     # Parse header
@@ -136,15 +137,15 @@ def create_comprehensive_animation(vtk_files, save_animation=True):
         data = frames_data[frame]
 
         # 1. Velocity Magnitude
-        im1 = axes[0,0].imshow(data['velocity_mag'], extent=[X.min(), X.max(), Y.min(), Y.max()],
-                              origin='lower', aspect='auto', vmin=vel_min, vmax=vel_max, cmap=velocity_cmap)
+        axes[0,0].imshow(data['velocity_mag'], extent=[X.min(), X.max(), Y.min(), Y.max()],
+                         origin='lower', aspect='auto', vmin=vel_min, vmax=vel_max, cmap=velocity_cmap)
         axes[0,0].set_title('Velocity Magnitude', fontweight='bold')
         axes[0,0].set_xlabel('X')
         axes[0,0].set_ylabel('Y')
 
         # 2. Pressure Field with contours
-        im2 = axes[0,1].imshow(data['p'], extent=[X.min(), X.max(), Y.min(), Y.max()],
-                              origin='lower', aspect='auto', vmin=p_min, vmax=p_max, cmap='RdBu_r')
+        axes[0,1].imshow(data['p'], extent=[X.min(), X.max(), Y.min(), Y.max()],
+                         origin='lower', aspect='auto', vmin=p_min, vmax=p_max, cmap='RdBu_r')
         contours = axes[0,1].contour(X, Y, data['p'], levels=8, colors='black', linewidths=0.5)
         axes[0,1].clabel(contours, inline=True, fontsize=8)
         axes[0,1].set_title('Pressure Field', fontweight='bold')
@@ -152,8 +153,8 @@ def create_comprehensive_animation(vtk_files, save_animation=True):
         axes[0,1].set_ylabel('Y')
 
         # 3. Vorticity
-        im3 = axes[0,2].imshow(data['vorticity'], extent=[X.min(), X.max(), Y.min(), Y.max()],
-                              origin='lower', aspect='auto', vmin=vort_min, vmax=vort_max, cmap='seismic')
+        axes[0,2].imshow(data['vorticity'], extent=[X.min(), X.max(), Y.min(), Y.max()],
+                         origin='lower', aspect='auto', vmin=vort_min, vmax=vort_max, cmap='seismic')
         axes[0,2].set_title('Vorticity', fontweight='bold')
         axes[0,2].set_xlabel('X')
         axes[0,2].set_ylabel('Y')
@@ -166,8 +167,8 @@ def create_comprehensive_animation(vtk_files, save_animation=True):
         V_sub = data['v'][::skip, ::skip]
         vel_sub = data['velocity_mag'][::skip, ::skip]
 
-        q = axes[1,0].quiver(X_sub, Y_sub, U_sub, V_sub, vel_sub, cmap=velocity_cmap,
-                            scale=15, width=0.003)
+        axes[1,0].quiver(X_sub, Y_sub, U_sub, V_sub, vel_sub, cmap=velocity_cmap,
+                         scale=15, width=0.003)
         axes[1,0].set_xlim(X.min(), X.max())
         axes[1,0].set_ylim(Y.min(), Y.max())
         axes[1,0].set_title('Vector Field', fontweight='bold')
@@ -190,7 +191,7 @@ def create_comprehensive_animation(vtk_files, save_animation=True):
                         cmap=velocity_cmap, alpha=0.8)
 
         # Overlay: pressure contours
-        pressure_contours = axes[1,2].contour(X, Y, data['p'], levels=6, colors='white', linewidths=1.5)
+        axes[1,2].contour(X, Y, data['p'], levels=6, colors='white', linewidths=1.5)
 
         # Highlight vorticity regions
         vort_threshold = np.percentile(np.abs(data['vorticity']), 85)
@@ -249,7 +250,7 @@ def create_vorticity_analysis(vtk_files, save_animation=True):
                 iteration = int(os.path.basename(filename).split('_')[-1].split('.')[0])
                 times.append(iteration)
 
-        except Exception as e:
+        except Exception:
             continue
 
     if not frames_data:
@@ -267,8 +268,8 @@ def create_vorticity_analysis(vtk_files, save_animation=True):
         data = frames_data[frame]
 
         # Left: Vorticity field
-        im1 = ax1.imshow(data['vorticity'], extent=[X.min(), X.max(), Y.min(), Y.max()],
-                        origin='lower', aspect='auto', vmin=vort_min, vmax=vort_max, cmap='RdBu')
+        ax1.imshow(data['vorticity'], extent=[X.min(), X.max(), Y.min(), Y.max()],
+                   origin='lower', aspect='auto', vmin=vort_min, vmax=vort_max, cmap='RdBu')
         ax1.set_title('Vorticity Field', fontweight='bold')
         ax1.set_xlabel('X')
         ax1.set_ylabel('Y')
@@ -327,7 +328,7 @@ def create_statistical_analysis(vtk_files):
                 max_vorticity.append(np.max(np.abs(vorticity)))
                 pressure_range.append(np.max(data_fields['p']) - np.min(data_fields['p']))
 
-        except Exception as e:
+        except Exception:
             continue
 
     if not times:

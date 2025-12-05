@@ -23,19 +23,21 @@ Usage:
 
 from typing import Dict, Tuple
 
+import matplotlib
 import numpy as np
 from numpy.typing import NDArray
-import matplotlib
+
 matplotlib.use('Agg')  # Use non-interactive backend
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 import argparse
 import os
 import sys
 
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+
 # Add parent directory to path for config import
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from config import DATA_DIR, PLOTS_DIR, ANIMATIONS_DIR, find_vtk_files, ensure_dirs
+from config import ANIMATIONS_DIR, DATA_DIR, PLOTS_DIR, ensure_dirs, find_vtk_files
 from vtk_reader import read_vtk_file as _read_vtk_file
 
 
@@ -104,7 +106,7 @@ def create_static_plots(vtk_files, field=None):
     """Create static PNG plots from VTK files"""
     print("\nCreating static plots...")
 
-    for i, filename in enumerate(vtk_files):
+    for filename in vtk_files:
         print(f"Processing {os.path.basename(filename)}...")
 
         try:
@@ -227,7 +229,7 @@ def animate_field(vtk_files, field_name='velocity_magnitude', output_prefix=None
     output_file = str(ANIMATIONS_DIR / f'{prefix}_{field_name}.gif')
     print(f"  Saving animation to {output_file}...")
     anim.save(output_file, writer='pillow', fps=5)
-    print(f"  Animation saved!")
+    print("  Animation saved!")
 
     plt.close()
     return anim
@@ -294,7 +296,7 @@ def create_streamline_animation(vtk_files):
     output_file = str(ANIMATIONS_DIR / 'cfd_streamlines.gif')
     print(f"  Saving streamline animation to {output_file}...")
     anim.save(output_file, writer='pillow', fps=5)
-    print(f"  Animation saved!")
+    print("  Animation saved!")
 
     plt.close()
     return anim

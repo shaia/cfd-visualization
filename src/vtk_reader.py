@@ -11,6 +11,7 @@ across all visualization scripts in the project.
 """
 
 from typing import Any, Dict, Optional, Tuple
+
 import numpy as np
 from numpy.typing import NDArray
 
@@ -95,19 +96,18 @@ def read_vtk_file(filename: str) -> Optional[VTKData]:
         ValueError: If the VTK file format is invalid.
     """
     try:
-        with open(filename, 'r') as f:
+        with open(filename) as f:
             lines = f.readlines()
     except FileNotFoundError:
         print(f"Error: File {filename} not found")
         return None
 
     # Parse header
-    nx, ny, nz = 0, 0, 1
+    nx, ny = 0, 0
     origin = [0.0, 0.0, 0.0]
     spacing = [1.0, 1.0, 1.0]
     x_coords = None
     y_coords = None
-    data_start = None
     fields: Dict[str, NDArray] = {}
 
     i = 0
@@ -117,8 +117,6 @@ def read_vtk_file(filename: str) -> Optional[VTKData]:
         if line.startswith('DIMENSIONS'):
             parts = line.split()
             nx, ny = int(parts[1]), int(parts[2])
-            if len(parts) > 3:
-                nz = int(parts[3])
 
         elif line.startswith('ORIGIN'):
             parts = line.split()
@@ -147,7 +145,7 @@ def read_vtk_file(filename: str) -> Optional[VTKData]:
             i -= 1
 
         elif line.startswith('POINT_DATA'):
-            data_start = i + 1
+            pass  # POINT_DATA marks start of field data, processed by subsequent sections
 
         elif line.startswith('VECTORS'):
             # Parse VECTORS format: each line has 3 components (u, v, w)

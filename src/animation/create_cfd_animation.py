@@ -2,19 +2,21 @@
 """
 Animation script for the CFD physics-based simulation with proper color scaling
 """
-import numpy as np
 import matplotlib
+import numpy as np
+
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 import glob
-import os
 import re
+
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+
 
 def read_vtk_structured_points(filename):
     """Read VTK structured points file and extract data"""
     try:
-        with open(filename, 'r') as file:
+        with open(filename) as file:
             lines = file.readlines()
     except FileNotFoundError:
         print(f"Error: File {filename} not found")
@@ -52,9 +54,12 @@ def read_vtk_structured_points(filename):
                 vector_line = lines[i + j].strip().split()
                 try:
                     u, v, w = map(float, vector_line)
-                    if np.isnan(u) or np.isinf(u): u = 0.0
-                    if np.isnan(v) or np.isinf(v): v = 0.0
-                    if np.isnan(w) or np.isinf(w): w = 0.0
+                    if np.isnan(u) or np.isinf(u):
+                        u = 0.0
+                    if np.isnan(v) or np.isinf(v):
+                        v = 0.0
+                    if np.isnan(w) or np.isinf(w):
+                        w = 0.0
                 except ValueError:
                     u, v, w = 0.0, 0.0, 0.0
                 vectors.append([u, v, w])
@@ -159,8 +164,8 @@ def main():
         step = int(re.search(r'flow_field_(\d+)\.vtk', files[frame]).group(1))
 
         # 1. Velocity magnitude with consistent scaling
-        im1 = ax1.contourf(data['X'], data['Y'], velocity_mag,
-                          levels=20, cmap='viridis', vmin=global_vmin, vmax=global_vmax)
+        ax1.contourf(data['X'], data['Y'], velocity_mag,
+                     levels=20, cmap='viridis', vmin=global_vmin, vmax=global_vmax)
         ax1.set_title(f'Velocity Magnitude - Step {step}')
         ax1.set_xlabel('X')
         ax1.set_ylabel('Y')
@@ -189,7 +194,7 @@ def main():
                               density=1.5, linewidth=1)
             else:
                 ax3.contourf(data['X'], data['Y'], velocity_mag, levels=20, cmap='viridis')
-        except:
+        except ValueError:
             ax3.contourf(data['X'], data['Y'], velocity_mag, levels=20, cmap='viridis')
         ax3.set_title('Flow Streamlines')
         ax3.set_xlabel('X')
@@ -198,13 +203,13 @@ def main():
 
         # 4. Pressure field
         if pressure is not None:
-            im4 = ax4.contourf(data['X'], data['Y'], pressure,
-                              levels=20, cmap='RdBu_r', vmin=global_pmin, vmax=global_pmax)
+            ax4.contourf(data['X'], data['Y'], pressure,
+                         levels=20, cmap='RdBu_r', vmin=global_pmin, vmax=global_pmax)
             ax4.set_title(f'Pressure Field - Step {step}')
         else:
             # Fallback to velocity magnitude if no pressure data
-            im4 = ax4.contourf(data['X'], data['Y'], velocity_mag,
-                              levels=20, cmap='plasma', vmin=global_vmin, vmax=global_vmax)
+            ax4.contourf(data['X'], data['Y'], velocity_mag,
+                         levels=20, cmap='plasma', vmin=global_vmin, vmax=global_vmax)
             ax4.set_title(f'Velocity (Alternative) - Step {step}')
         ax4.set_xlabel('X')
         ax4.set_ylabel('Y')
