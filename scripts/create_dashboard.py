@@ -14,75 +14,14 @@ import glob
 import os
 from pathlib import Path
 
-import numpy as np
 from plotly.offline import plot
 
+from cfd_viz.common import read_vtk_file
 from cfd_viz.interactive import (
     create_animated_dashboard,
     create_convergence_figure,
     create_interactive_frame_collection,
 )
-
-
-def read_vtk_file(filename: str) -> tuple:
-    """Read a VTK structured points file and extract data.
-
-    Args:
-        filename: Path to VTK file.
-
-    Returns:
-        Tuple of (x, y, data_fields dict).
-    """
-    with open(filename) as f:
-        lines = f.readlines()
-
-    dimensions = None
-    origin = None
-    spacing = None
-    data_start = None
-
-    for i, line in enumerate(lines):
-        if line.startswith("DIMENSIONS"):
-            dimensions = [int(x) for x in line.split()[1:4]]
-        elif line.startswith("ORIGIN"):
-            origin = [float(x) for x in line.split()[1:4]]
-        elif line.startswith("SPACING"):
-            spacing = [float(x) for x in line.split()[1:4]]
-        elif line.startswith("POINT_DATA"):
-            data_start = i + 1
-            break
-
-    if not all([dimensions, origin, spacing, data_start]):
-        raise ValueError(f"Invalid VTK file format: {filename}")
-
-    nx, ny = dimensions[0], dimensions[1]
-
-    x = np.linspace(origin[0], origin[0] + (nx - 1) * spacing[0], nx)
-    y = np.linspace(origin[1], origin[1] + (ny - 1) * spacing[1], ny)
-
-    data_fields = {}
-    i = data_start
-
-    while i < len(lines):
-        line = lines[i].strip()
-        if line.startswith("SCALARS"):
-            field_name = line.split()[1]
-            i += 2  # Skip LOOKUP_TABLE line
-
-            field_data = []
-            while i < len(lines) and not lines[i].strip().startswith(
-                ("SCALARS", "VECTORS")
-            ):
-                values = lines[i].strip().split()
-                field_data.extend([float(v) for v in values])
-                i += 1
-
-            field_data = np.array(field_data).reshape((ny, nx))
-            data_fields[field_name] = field_data
-        else:
-            i += 1
-
-    return x, y, data_fields
 
 
 def load_vtk_files(vtk_files: list) -> tuple:
@@ -99,11 +38,17 @@ def load_vtk_files(vtk_files: list) -> tuple:
 
     for filename in sorted(vtk_files):
         try:
-            x, y, data_fields = read_vtk_file(filename)
-            if "u" in data_fields and "v" in data_fields and "p" in data_fields:
-                frames_list.append(
-                    (x, y, data_fields["u"], data_fields["v"], data_fields["p"])
-                )
+            data = read_vtk_file(filename)
+            if data is None:
+                print(f"Warning: Could not read {filename}")
+                continue
+
+            u = data.fields.get("u")
+            v = data.fields.get("v")
+            p = data.fields.get("p")
+
+            if u is not None and v is not None:
+                frames_list.append((data.x, data.y, u, v, p))
                 iteration = int(os.path.basename(filename).split("_")[-1].split(".")[0])
                 time_indices.append(iteration)
         except Exception as e:
@@ -161,7 +106,7 @@ def main():
     )
     parser.add_argument(
         "--output-dir",
-        default="visualization/visualization_output",
+        default="visualization_output",
         help="Output directory for HTML files",
     )
     parser.add_argument(
