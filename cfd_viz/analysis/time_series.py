@@ -475,11 +475,11 @@ def detect_periodicity(
 
 
 @dataclass
-class MonitoringSnapshot:
-    """Snapshot of flow monitoring metrics at a single time.
+class FlowMetrics:
+    """Flow field metrics at a single time instant.
 
     Attributes:
-        timestamp: Time of snapshot.
+        timestamp: Time of measurement.
         max_velocity: Maximum velocity magnitude.
         mean_velocity: Mean velocity magnitude.
         max_pressure: Maximum pressure.
@@ -510,22 +510,22 @@ class MonitoringSnapshot:
 
 
 @dataclass
-class MonitoringHistory:
-    """History of monitoring snapshots for convergence tracking.
+class FlowMetricsTimeSeries:
+    """Time series of flow metrics for convergence tracking.
 
     Attributes:
-        snapshots: List of MonitoringSnapshot objects.
-        max_history: Maximum number of snapshots to keep.
+        snapshots: List of FlowMetrics objects.
+        max_length: Maximum number of entries to keep.
     """
 
-    snapshots: List[MonitoringSnapshot]
-    max_history: int = 100
+    snapshots: List[FlowMetrics]
+    max_length: int = 100
 
-    def add_snapshot(self, snapshot: MonitoringSnapshot) -> None:
-        """Add a snapshot, trimming old entries if needed."""
-        self.snapshots.append(snapshot)
-        if len(self.snapshots) > self.max_history:
-            self.snapshots = self.snapshots[-self.max_history :]
+    def add(self, metrics: FlowMetrics) -> None:
+        """Add metrics, trimming old entries if needed."""
+        self.snapshots.append(metrics)
+        if len(self.snapshots) > self.max_length:
+            self.snapshots = self.snapshots[-self.max_length :]
 
     def get_metric_array(self, metric_name: str) -> NDArray:
         """Get array of values for a specific metric."""
@@ -538,11 +538,11 @@ class MonitoringHistory:
     def estimate_convergence_trend(
         self, metric_name: str, window: int = 5
     ) -> Optional[float]:
-        """Estimate trend for a metric over recent snapshots.
+        """Estimate trend for a metric over recent entries.
 
         Args:
             metric_name: Name of the metric to analyze.
-            window: Number of recent snapshots to use.
+            window: Number of recent entries to use.
 
         Returns:
             Slope of linear fit, or None if insufficient data.
@@ -564,24 +564,24 @@ class MonitoringHistory:
         return abs(trend) < threshold
 
 
-def compute_monitoring_snapshot(
+def compute_flow_metrics(
     u: NDArray,
     v: NDArray,
     p: Optional[NDArray],
     dx: float,
     dy: float,
     timestamp: float = 0.0,
-) -> MonitoringSnapshot:
-    """Compute monitoring metrics for a single flow field snapshot.
+) -> FlowMetrics:
+    """Compute flow metrics for a single time instant.
 
     Args:
         u, v: Velocity component fields.
         p: Pressure field (optional).
         dx, dy: Grid spacing.
-        timestamp: Time of this snapshot.
+        timestamp: Time of this measurement.
 
     Returns:
-        MonitoringSnapshot with all computed metrics.
+        FlowMetrics with all computed values.
     """
     velocity_mag = velocity.magnitude(u, v)
 
@@ -598,7 +598,7 @@ def compute_monitoring_snapshot(
     if p is None:
         p = np.zeros_like(u)
 
-    return MonitoringSnapshot(
+    return FlowMetrics(
         timestamp=timestamp,
         max_velocity=float(np.max(velocity_mag)),
         mean_velocity=float(np.mean(velocity_mag)),
@@ -609,13 +609,13 @@ def compute_monitoring_snapshot(
     )
 
 
-def create_monitoring_history(max_history: int = 100) -> MonitoringHistory:
-    """Create an empty monitoring history.
+def create_flow_metrics_time_series(max_length: int = 100) -> FlowMetricsTimeSeries:
+    """Create an empty flow metrics time series.
 
     Args:
-        max_history: Maximum number of snapshots to retain.
+        max_length: Maximum number of entries to retain.
 
     Returns:
-        Empty MonitoringHistory object.
+        Empty FlowMetricsTimeSeries object.
     """
-    return MonitoringHistory(snapshots=[], max_history=max_history)
+    return FlowMetricsTimeSeries(snapshots=[], max_length=max_length)
