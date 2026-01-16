@@ -44,6 +44,11 @@ def from_cfd_python(
     if nx <= 0 or ny <= 0:
         raise ValueError(f"Invalid grid dimensions: {nx}x{ny}")
 
+    if xmin >= xmax:
+        raise ValueError(f"Invalid x bounds: xmin ({xmin}) must be less than xmax ({xmax})")
+    if ymin >= ymax:
+        raise ValueError(f"Invalid y bounds: ymin ({ymin}) must be less than ymax ({ymax})")
+
     expected_size = nx * ny
     if len(u) != expected_size:
         raise ValueError(f"u has {len(u)} elements, expected {expected_size}")

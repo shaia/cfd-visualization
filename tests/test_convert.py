@@ -71,6 +71,26 @@ class TestFromCfdPython:
         with pytest.raises(ValueError, match="Invalid grid dimensions"):
             from_cfd_python([1.0], [1.0], nx=-5, ny=10)
 
+    def test_invalid_x_bounds_inverted(self):
+        """Should raise ValueError when xmin >= xmax."""
+        with pytest.raises(ValueError, match="Invalid x bounds"):
+            from_cfd_python([1.0] * 100, [1.0] * 100, nx=10, ny=10, xmin=1.0, xmax=0.0)
+
+    def test_invalid_x_bounds_equal(self):
+        """Should raise ValueError when xmin == xmax."""
+        with pytest.raises(ValueError, match="Invalid x bounds"):
+            from_cfd_python([1.0] * 100, [1.0] * 100, nx=10, ny=10, xmin=0.5, xmax=0.5)
+
+    def test_invalid_y_bounds_inverted(self):
+        """Should raise ValueError when ymin >= ymax."""
+        with pytest.raises(ValueError, match="Invalid y bounds"):
+            from_cfd_python([1.0] * 100, [1.0] * 100, nx=10, ny=10, ymin=1.0, ymax=0.0)
+
+    def test_invalid_y_bounds_equal(self):
+        """Should raise ValueError when ymin == ymax."""
+        with pytest.raises(ValueError, match="Invalid y bounds"):
+            from_cfd_python([1.0] * 100, [1.0] * 100, nx=10, ny=10, ymin=0.5, ymax=0.5)
+
     def test_u_size_mismatch(self):
         """Should raise ValueError when u size doesn't match grid."""
         with pytest.raises(ValueError, match="u has .* elements, expected"):
