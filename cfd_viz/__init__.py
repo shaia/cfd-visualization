@@ -50,6 +50,7 @@ from .cfd_python_integration import (
     require_cfd_python,
     require_cfd_python_version,
 )
+from .convert import from_cfd_python, from_simulation_result, to_cfd_python
 
 __all__ = [
     "__version__",
@@ -67,4 +68,8 @@ __all__ = [
     "require_cfd_python",
     "check_cfd_python_version",
     "require_cfd_python_version",
+    # Conversion utilities
+    "from_cfd_python",
+    "from_simulation_result",
+    "to_cfd_python",
 ]
