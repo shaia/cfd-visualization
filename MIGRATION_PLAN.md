@@ -154,19 +154,20 @@ result = cfd_python.run_simulation_with_params(nx=100, ny=100, steps=500, ...)
   # cfd_viz/convert.py
   """Conversion utilities for cfd-python integration."""
 
+  from typing import Any, Dict, List, Optional
+
   import numpy as np
-  from typing import Optional, Dict, Any, List
+  from numpy.typing import NDArray
 
   from .common import VTKData
-  from .compat import get_cfd_python, has_cfd_python
 
 
   def from_cfd_python(
       u: List[float],
       v: List[float],
+      nx: int,
+      ny: int,
       p: Optional[List[float]] = None,
-      nx: int = 0,
-      ny: int = 0,
       xmin: float = 0.0,
       xmax: float = 1.0,
       ymin: float = 0.0,
@@ -539,6 +540,7 @@ result = cfd_python.run_simulation_with_params(nx=100, ny=100, steps=500, ...)
           v=result['v'],
           nx=result['nx'],
           ny=result['ny'],
+          field=field,
           p=result.get('p'),
           xmin=result.get('xmin', 0.0),
           xmax=result.get('xmax', 1.0),
@@ -576,9 +578,10 @@ result = cfd_python.run_simulation_with_params(nx=100, ny=100, steps=500, ...)
   # cfd_viz/info.py
   """System information and performance hints."""
 
-  from typing import Dict, Any, List
+  import os
+  from typing import Any, Dict
 
-  from .compat import has_cfd_python, get_cfd_python
+  from .cfd_python_integration import get_cfd_python, has_cfd_python
 
 
   def get_system_info() -> Dict[str, Any]:
@@ -623,7 +626,6 @@ result = cfd_python.run_simulation_with_params(nx=100, ny=100, steps=500, ...)
       if info['cfd_python_available']:
           if 'OpenMP' in info['backends']:
               settings['parallel_frame_rendering'] = True
-              import os
               settings['recommended_workers'] = min(4, os.cpu_count() or 1)
 
           if info['simd'] == 'avx2':

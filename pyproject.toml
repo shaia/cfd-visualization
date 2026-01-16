@@ -2,17 +2,20 @@
 name = "cfd-visualization"
 version = "0.1.0"
 description = "Visualization tools for CFD simulation output"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "numpy",
     "matplotlib",
     "scipy",
     "pandas",
     "watchdog",
+    "packaging",
 ]
 
 [project.optional-dependencies]
 interactive = ["plotly", "dash"]
+simulation = ["cfd-python>=0.1.6"]
+full = ["plotly", "dash", "cfd-python>=0.1.6"]
 
 [build-system]
 requires = ["hatchling"]
@@ -22,8 +25,8 @@ build-backend = "hatchling.build"
 packages = ["cfd_viz"]
 
 [tool.ruff]
-# Target Python 3.8 for compatibility
-target-version = "py38"
+# Target Python 3.9 for compatibility (cfd-python requires 3.9+)
+target-version = "py39"
 
 # Line length (PEP 8 recommends 79, but 88 is common for modern projects)
 line-length = 88
@@ -76,3 +79,9 @@ indent-style = "space"
 
 # Unix-style line endings for cross-platform consistency
 line-ending = "lf"
+
+[dependency-groups]
+dev = [
+    "cfd-python>=0.1.6",
+    "pytest>=8.4.2",
+]

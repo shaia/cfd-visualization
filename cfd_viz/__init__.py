@@ -10,6 +10,7 @@ Modules:
     analysis: Analysis tools (vorticity, line profiles, comparisons)
     animation: Animation creation utilities
     interactive: Interactive dashboard tools
+    cfd_python_integration: Optional cfd-python integration utilities
 
 Quick Start:
     >>> from cfd_viz.common import read_vtk_file
@@ -22,6 +23,16 @@ Quick Start:
     >>> speed = magnitude(data.u, data.v)
     >>> omega = vorticity(data.u, data.v, data.dx, data.dy)
 
+cfd-python Integration:
+    When cfd-python is installed, additional features are available:
+
+    >>> from cfd_viz.cfd_python_integration import has_cfd_python, get_cfd_python
+    >>> if has_cfd_python():
+    ...     cfd = get_cfd_python()
+    ...     result = cfd.run_simulation_with_params(nx=50, ny=50, steps=100)
+
+    Install with: pip install cfd-visualization[simulation]
+
 For more examples, see the examples/ directory.
 """
 
@@ -31,6 +42,14 @@ __version__ = "0.1.0"
 # Import fields module for easy access
 from . import fields
 from .common import VTKData, ensure_dirs, find_vtk_files, read_vtk_file
+from .cfd_python_integration import (
+    check_cfd_python_version,
+    get_cfd_python,
+    get_cfd_python_version,
+    has_cfd_python,
+    require_cfd_python,
+    require_cfd_python_version,
+)
 
 __all__ = [
     "__version__",
@@ -41,4 +60,11 @@ __all__ = [
     "ensure_dirs",
     # Submodules
     "fields",
+    # cfd-python integration
+    "has_cfd_python",
+    "get_cfd_python",
+    "get_cfd_python_version",
+    "require_cfd_python",
+    "check_cfd_python_version",
+    "require_cfd_python_version",
 ]
