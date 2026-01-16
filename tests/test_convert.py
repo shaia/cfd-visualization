@@ -271,6 +271,73 @@ class TestToCfdPython:
 
         assert result["p"] is None
 
+    def test_missing_u_field(self):
+        """Should return empty list when u field is missing."""
+        from cfd_viz.common import VTKData
+
+        # Create VTKData without u field
+        data = VTKData(
+            x=np.linspace(0, 1, 10),
+            y=np.linspace(0, 1, 10),
+            X=np.zeros((10, 10)),
+            Y=np.zeros((10, 10)),
+            fields={"v": np.ones((10, 10))},  # Only v, no u
+            nx=10,
+            ny=10,
+            dx=0.1,
+            dy=0.1,
+        )
+
+        result = to_cfd_python(data)
+
+        assert result["u"] == []
+        assert len(result["v"]) == 100
+
+    def test_missing_v_field(self):
+        """Should return empty list when v field is missing."""
+        from cfd_viz.common import VTKData
+
+        # Create VTKData without v field
+        data = VTKData(
+            x=np.linspace(0, 1, 10),
+            y=np.linspace(0, 1, 10),
+            X=np.zeros((10, 10)),
+            Y=np.zeros((10, 10)),
+            fields={"u": np.ones((10, 10))},  # Only u, no v
+            nx=10,
+            ny=10,
+            dx=0.1,
+            dy=0.1,
+        )
+
+        result = to_cfd_python(data)
+
+        assert len(result["u"]) == 100
+        assert result["v"] == []
+
+    def test_missing_both_velocity_fields(self):
+        """Should return empty lists when both u and v fields are missing."""
+        from cfd_viz.common import VTKData
+
+        # Create VTKData without velocity fields
+        data = VTKData(
+            x=np.linspace(0, 1, 10),
+            y=np.linspace(0, 1, 10),
+            X=np.zeros((10, 10)),
+            Y=np.zeros((10, 10)),
+            fields={"p": np.ones((10, 10))},  # Only pressure
+            nx=10,
+            ny=10,
+            dx=0.1,
+            dy=0.1,
+        )
+
+        result = to_cfd_python(data)
+
+        assert result["u"] == []
+        assert result["v"] == []
+        assert len(result["p"]) == 100
+
 
 class TestRoundtrip:
     """Tests for roundtrip conversion."""
