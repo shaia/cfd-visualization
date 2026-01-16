@@ -179,6 +179,40 @@ class TestFromSimulationResult:
         assert data.y[0] == pytest.approx(0.0)
         assert data.y[-1] == pytest.approx(1.0)
 
+    def test_missing_u_key(self):
+        """Should raise KeyError when 'u' is missing."""
+        result = {"v": [0.5] * 100, "nx": 10, "ny": 10}
+        with pytest.raises(KeyError, match="Missing required keys.*u"):
+            from_simulation_result(result)
+
+    def test_missing_v_key(self):
+        """Should raise KeyError when 'v' is missing."""
+        result = {"u": [1.0] * 100, "nx": 10, "ny": 10}
+        with pytest.raises(KeyError, match="Missing required keys.*v"):
+            from_simulation_result(result)
+
+    def test_missing_nx_key(self):
+        """Should raise KeyError when 'nx' is missing."""
+        result = {"u": [1.0] * 100, "v": [0.5] * 100, "ny": 10}
+        with pytest.raises(KeyError, match="Missing required keys.*nx"):
+            from_simulation_result(result)
+
+    def test_missing_ny_key(self):
+        """Should raise KeyError when 'ny' is missing."""
+        result = {"u": [1.0] * 100, "v": [0.5] * 100, "nx": 10}
+        with pytest.raises(KeyError, match="Missing required keys.*ny"):
+            from_simulation_result(result)
+
+    def test_missing_multiple_keys(self):
+        """Should report all missing keys."""
+        result = {"nx": 10}
+        with pytest.raises(KeyError) as exc_info:
+            from_simulation_result(result)
+        error_msg = str(exc_info.value)
+        assert "u" in error_msg
+        assert "v" in error_msg
+        assert "ny" in error_msg
+
 
 class TestToCfdPython:
     """Tests for to_cfd_python function."""

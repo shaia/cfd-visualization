@@ -93,11 +93,19 @@ def from_simulation_result(result: Dict[str, Any]) -> VTKData:
     Returns:
         VTKData object ready for visualization
 
+    Raises:
+        KeyError: If required keys ('u', 'v', 'nx', 'ny') are missing
+
     Example:
         >>> result = cfd_python.run_simulation_with_params(nx=50, ny=50, steps=100)
         >>> data = from_simulation_result(result)
         >>> quick_plot(data)
     """
+    required_keys = ("u", "v", "nx", "ny")
+    missing_keys = [key for key in required_keys if key not in result]
+    if missing_keys:
+        raise KeyError(f"Missing required keys in result: {missing_keys}")
+
     return from_cfd_python(
         u=result["u"],
         v=result["v"],
