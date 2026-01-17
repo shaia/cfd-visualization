@@ -51,6 +51,11 @@ from .cfd_python_integration import (
     require_cfd_python_version,
 )
 from .convert import from_cfd_python, from_simulation_result, to_cfd_python
+from .stats import (
+    calculate_field_stats,
+    compute_flow_statistics,
+    compute_velocity_magnitude,
+)
 
 __all__ = [
     "__version__",
@@ -72,4 +77,8 @@ __all__ = [
     "from_cfd_python",
     "from_simulation_result",
     "to_cfd_python",
+    # Statistics
+    "calculate_field_stats",
+    "compute_flow_statistics",
+    "compute_velocity_magnitude",
 ]
