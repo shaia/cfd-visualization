@@ -56,6 +56,7 @@ from .stats import (
     compute_flow_statistics,
     compute_velocity_magnitude,
 )
+from .quick import quick_plot, quick_plot_data, quick_plot_result
 
 __all__ = [
     "__version__",
@@ -81,4 +82,8 @@ __all__ = [
     "calculate_field_stats",
     "compute_flow_statistics",
     "compute_velocity_magnitude",
+    # Quick plotting
+    "quick_plot",
+    "quick_plot_result",
+    "quick_plot_data",
 ]
