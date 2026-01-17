@@ -57,6 +57,7 @@ from .stats import (
     compute_velocity_magnitude,
 )
 from .quick import quick_plot, quick_plot_data, quick_plot_result
+from .info import get_recommended_settings, get_system_info, print_system_info
 
 __all__ = [
     "__version__",
@@ -86,4 +87,8 @@ __all__ = [
     "quick_plot",
     "quick_plot_result",
     "quick_plot_data",
+    # System info
+    "get_system_info",
+    "get_recommended_settings",
+    "print_system_info",
 ]
