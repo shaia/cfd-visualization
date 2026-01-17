@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from .convert import from_cfd_python, from_simulation_result
+from .convert import from_cfd_python
 from .fields import magnitude, vorticity
 from .plotting import plot_contour_field
 

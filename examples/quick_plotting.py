@@ -5,10 +5,13 @@ This example demonstrates the quick plotting functions in cfd_viz,
 which provide one-liner visualization for rapid iteration during
 development and prototyping.
 
-The quick plotting module offers three convenience functions:
-1. quick_plot() - Takes raw velocity data as flat lists
-2. quick_plot_result() - Takes a simulation result dictionary with u/v arrays
-3. quick_plot_data() - Takes a VTKData object
+Functions demonstrated:
+1. quick_plot_data() - Takes a VTKData object (recommended)
+2. quick_plot() - Takes raw velocity data as flat lists
+
+Note: quick_plot_result() is also available for simulation result dicts
+that contain 'u' and 'v' keys, but is not demonstrated here since
+cfd_python returns VTK files rather than raw velocity arrays.
 
 Usage:
     python examples/quick_plotting.py
@@ -63,27 +66,27 @@ def example_quick_plot_data():
         return
 
     # One-liner visualization!
-    fig, ax = quick_plot_data(data)
+    _fig, ax = quick_plot_data(data)
     ax.set_title("quick_plot_data() - Velocity Magnitude")
     plt.savefig("quick_plot_data_velocity.png", dpi=100)
     print("Saved: quick_plot_data_velocity.png")
 
     # Different field types
-    fig, ax = quick_plot_data(data, field="vorticity")
+    _fig, ax = quick_plot_data(data, field="vorticity")
     plt.savefig("quick_plot_data_vorticity.png", dpi=100)
     print("Saved: quick_plot_data_vorticity.png")
 
     # U and V velocity components
-    fig, ax = quick_plot_data(data, field="u")
+    _fig, ax = quick_plot_data(data, field="u")
     plt.savefig("quick_plot_data_u.png", dpi=100)
     print("Saved: quick_plot_data_u.png")
 
-    fig, ax = quick_plot_data(data, field="v")
+    _fig, ax = quick_plot_data(data, field="v")
     plt.savefig("quick_plot_data_v.png", dpi=100)
     print("Saved: quick_plot_data_v.png")
 
     # Pressure field
-    fig, ax = quick_plot_data(data, field="p")
+    _fig, ax = quick_plot_data(data, field="p")
     plt.savefig("quick_plot_data_pressure.png", dpi=100)
     print("Saved: quick_plot_data_pressure.png")
 
@@ -124,13 +127,13 @@ def example_quick_plot():
     ny = data.ny
 
     # Visualize with quick_plot
-    fig, ax = quick_plot(u, v, nx, ny)
+    _fig, ax = quick_plot(u, v, nx, ny)
     ax.set_title("quick_plot() - From Raw Data")
     plt.savefig("quick_plot_raw.png", dpi=100)
     print("Saved: quick_plot_raw.png")
 
     # With custom domain bounds
-    fig, ax = quick_plot(
+    _fig, ax = quick_plot(
         u, v, nx, ny,
         field="vorticity",
         xmin=-0.5,
@@ -223,7 +226,7 @@ def example_custom_styling():
         return
 
     # Custom figure size
-    fig, ax = quick_plot_data(
+    _fig, ax = quick_plot_data(
         data,
         field="velocity_magnitude",
         figsize=(10, 8),
@@ -258,6 +261,7 @@ def main():
     print("Summary of quick_plot functions:")
     print("  - quick_plot_data(data): For VTKData objects (recommended)")
     print("  - quick_plot(u, v, nx, ny): For raw velocity arrays")
+    print("  - quick_plot_result(result): For dicts with u/v keys (not shown)")
 
 
 if __name__ == "__main__":
