@@ -41,7 +41,6 @@ __version__ = "0.1.0"
 # Re-export commonly used items for convenience
 # Import fields module for easy access
 from . import fields
-from .common import VTKData, ensure_dirs, find_vtk_files, read_vtk_file
 from .cfd_python_integration import (
     check_cfd_python_version,
     get_cfd_python,
@@ -50,6 +49,7 @@ from .cfd_python_integration import (
     require_cfd_python,
     require_cfd_python_version,
 )
+from .common import VTKData, ensure_dirs, find_vtk_files, read_vtk_file
 from .convert import from_cfd_python, from_simulation_result, to_cfd_python
 from .stats import (
     calculate_field_stats,

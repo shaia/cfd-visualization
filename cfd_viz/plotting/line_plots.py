@@ -4,7 +4,8 @@ Functions for plotting line profiles, boundary layer profiles,
 and cross-sectional data from the analysis module.
 """
 
-from typing import List, Optional, Sequence
+from collections.abc import Sequence
+from typing import List, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
