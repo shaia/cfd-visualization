@@ -47,7 +47,9 @@ class TestFromCfdPython:
         """Should calculate correct grid spacing."""
         u = [1.0] * 100
         v = [0.5] * 100
-        data = from_cfd_python(u, v, nx=10, ny=10, xmin=0.0, xmax=1.0, ymin=0.0, ymax=2.0)
+        data = from_cfd_python(
+            u, v, nx=10, ny=10, xmin=0.0, xmax=1.0, ymin=0.0, ymax=2.0
+        )
 
         assert data.dx == pytest.approx(1.0 / 9.0)  # (1.0 - 0.0) / (10 - 1)
         assert data.dy == pytest.approx(2.0 / 9.0)  # (2.0 - 0.0) / (10 - 1)
@@ -359,9 +361,7 @@ class TestRoundtrip:
         """Should preserve pressure through roundtrip."""
         original_p = list(range(100))
 
-        data = from_cfd_python(
-            [1.0] * 100, [0.5] * 100, nx=10, ny=10, p=original_p
-        )
+        data = from_cfd_python([1.0] * 100, [0.5] * 100, nx=10, ny=10, p=original_p)
         result = to_cfd_python(data)
 
         assert result["p"] == original_p

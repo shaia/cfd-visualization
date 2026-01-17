@@ -83,5 +83,6 @@ line-ending = "lf"
 [dependency-groups]
 dev = [
     "cfd-python>=0.1.6",
+    "pre-commit>=4.0.0",
     "pytest>=8.4.2",
 ]

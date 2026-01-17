@@ -121,7 +121,9 @@ class TestRequireCfdPythonVersion:
         """Should raise ImportError if version is too old."""
         if cfd_python_integration.has_cfd_python():
             with pytest.raises(ImportError) as exc_info:
-                cfd_python_integration.require_cfd_python_version("99.0.0", "future feature")
+                cfd_python_integration.require_cfd_python_version(
+                    "99.0.0", "future feature"
+                )
             assert "99.0.0" in str(exc_info.value)
             assert "future feature" in str(exc_info.value)
 
@@ -199,4 +201,3 @@ class TestIntegrationWithCfdPython:
         cfd = cfd_python_integration.get_cfd_python()
         simd_name = cfd.get_simd_name()
         assert simd_name in ("avx2", "neon", "none")
-

@@ -4,7 +4,8 @@ Functions for plotting time series data, convergence history,
 and monitoring dashboards from the analysis module.
 """
 
-from typing import Optional, Sequence
+from collections.abc import Sequence
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
