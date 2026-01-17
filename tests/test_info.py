@@ -1,7 +1,5 @@
 """Tests for cfd_viz.info module."""
 
-import pytest
-
 from cfd_viz.info import get_recommended_settings, get_system_info, print_system_info
 
 

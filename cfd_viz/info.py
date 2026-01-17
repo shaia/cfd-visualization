@@ -6,7 +6,11 @@ Query cfd-python backend availability and provide optimization recommendations.
 import os
 from typing import Any
 
-from .cfd_python_integration import get_cfd_python, has_cfd_python
+from .cfd_python_integration import (
+    get_cfd_python,
+    get_cfd_python_version,
+    has_cfd_python,
+)
 
 
 def get_system_info() -> dict[str, Any]:
@@ -34,10 +38,10 @@ def get_system_info() -> dict[str, Any]:
 
     if has_cfd_python():
         cfd = get_cfd_python()
-        info["cfd_python_version"] = cfd.get_version()
+        info["cfd_python_version"] = get_cfd_python_version()
         info["backends"] = cfd.get_available_backends()
         info["simd"] = cfd.get_simd_name()
-        info["has_simd"] = cfd.has_simd()
+        info["has_simd"] = info["simd"] != "none"
         info["has_avx2"] = cfd.has_avx2()
         info["has_neon"] = cfd.has_neon()
         info["gpu_available"] = cfd.backend_is_available(cfd.BACKEND_CUDA)
@@ -67,7 +71,9 @@ def get_recommended_settings() -> dict[str, Any]:
 
     if info["cfd_python_available"]:
         # Enable parallel rendering if OpenMP is available
-        if "openmp" in info["backends"]:
+        # Use case-insensitive check for robustness
+        backends_lower = [b.lower() for b in info["backends"]]
+        if "openmp" in backends_lower:
             settings["parallel_frame_rendering"] = True
             settings["recommended_workers"] = min(4, os.cpu_count() or 1)
 
