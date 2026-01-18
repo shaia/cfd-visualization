@@ -68,7 +68,19 @@ ignore = [
     "C408",   # unnecessary dict() call - often clearer for API kwargs
     "PLR0913", # too many arguments to function call (common in scientific code)
     "PLR2004", # magic value comparison (common in numerical code)
+    "PLR0915", # too many statements - complex visualization functions are expected
     "SIM108", # use ternary operator - sometimes less readable
+    "RUF022", # __all__ not sorted - we prefer logical grouping over alphabetical
+    "UP035",  # deprecated typing imports - needed for Python 3.9 compatibility
+    "UP006",  # use list instead of List - needed for Python 3.9 compatibility
+    "NPY201", # np.trapz deprecated - will fix when dropping NumPy 1.x support
+    "NPY002", # legacy np.random - will modernize when needed
+    "PLC0415", # import not at top level - intentional in tests for export testing
+    "PTH",    # pathlib suggestions - os.path is fine for this project
+    "PERF401", # list comprehension - explicit loops can be clearer
+    "PERF403", # dict comprehension - explicit loops can be clearer
+    "PLR0912", # too many branches - VTK reader and complex parsers need many branches
+    "PERF203", # try-except in loop - needed for graceful file loading error handling
 ]
 
 # Allow autofix for all enabled rules
@@ -78,10 +90,10 @@ unfixable = []
 [tool.ruff.lint.per-file-ignores]
 # Allow unused imports in __init__.py (re-exports)
 "__init__.py" = ["F401"]
-# Examples can have more relaxed rules
-"examples/*.py" = ["PLR0915", "PLW0603"]
-# Tests can use assert and have longer functions
-"tests/*.py" = ["S101", "PLR0915"]
+# Examples can have more relaxed rules (unused vars from unpacking, etc.)
+"examples/*.py" = ["PLR0915", "PLW0603", "RUF059", "F841"]
+# Tests can use assert and have longer functions, unused variables in fixtures
+"tests/*.py" = ["S101", "PLR0915", "RUF059", "F841", "RUF043"]
 
 [tool.ruff.lint.isort]
 # Group imports: standard library, third-party, local

@@ -7,9 +7,9 @@ matplotlib Animation objects.
 
 from typing import List, Optional, Tuple
 
-import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import animation
 from matplotlib.axes import Axes
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.figure import Figure

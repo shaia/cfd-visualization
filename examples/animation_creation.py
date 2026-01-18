@@ -85,7 +85,7 @@ def generate_time_series_data():
 
         # Get pressure if available
         p = None
-        if "p" in result and result["p"]:
+        if result.get("p"):
             p = np.array(result["p"]).reshape((ny, nx))
         else:
             # Create pressure approximation
@@ -113,7 +113,7 @@ def create_frame_data_demo(frames):
         time=0.0,
     )
 
-    print(f"Created FrameData:")
+    print("Created FrameData:")
     print(f"  Grid size: {frame_data.nx} x {frame_data.ny}")
     print(f"  Velocity magnitude range: {frame_data.velocity_mag.min():.4f} - "
           f"{frame_data.velocity_mag.max():.4f}")
@@ -137,7 +137,7 @@ def create_animation_frames_demo(frames, dx, dy):
         dy=dy,
     )
 
-    print(f"Created AnimationFrames:")
+    print("Created AnimationFrames:")
     print(f"  Number of frames: {animation_frames.num_frames}")
     print(f"  Time range: {animation_frames.time_start:.2f} - "
           f"{animation_frames.time_end:.2f}")

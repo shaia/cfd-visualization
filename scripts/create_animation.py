@@ -50,8 +50,12 @@ from cfd_viz.animation import (
     export_animation_frames,
     save_animation,
 )
-from cfd_viz.common import ANIMATIONS_DIR, PLOTS_DIR, ensure_dirs
-from cfd_viz.common import read_vtk_file as _read_vtk
+from cfd_viz.common import (
+    ANIMATIONS_DIR,
+    PLOTS_DIR,
+    ensure_dirs,
+    read_vtk_file as _read_vtk,
+)
 
 
 def read_vtk_file(filename: str) -> Tuple[NDArray, NDArray, Dict[str, NDArray]]:
@@ -146,7 +150,7 @@ def create_and_save_animation(
     """
     print(f"Creating {animation_type} animation...")
 
-    if animation_type == "velocity" or animation_type == "field":
+    if animation_type in {"velocity", "field"}:
         fig, anim = create_field_animation(animation_frames, field)
     elif animation_type == "streamlines":
         fig, anim = create_streamline_animation(animation_frames)

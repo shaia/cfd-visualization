@@ -27,7 +27,7 @@ def flat_plate_flow(uniform_grid):
     U_inf = 1.0
     delta = 0.2  # BL thickness
 
-    u = np.where(Y < delta, U_inf * Y / delta, U_inf)
+    u = np.where(delta > Y, U_inf * Y / delta, U_inf)
     v = np.zeros_like(Y)
     p = np.zeros_like(Y)
 
