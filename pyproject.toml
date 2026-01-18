@@ -48,11 +48,17 @@ exclude = [
 select = [
     "E",      # pycodestyle errors
     "W",      # pycodestyle warnings
-    "F",      # Pyflakes
-    "I",      # isort
-    "B",      # flake8-bugbear
+    "F",      # Pyflakes (unused imports, undefined names)
+    "I",      # isort (import sorting)
+    "B",      # flake8-bugbear (common bugs)
     "C4",     # flake8-comprehensions
-    "UP",     # pyupgrade
+    "UP",     # pyupgrade (modern Python syntax)
+    "SIM",    # flake8-simplify (simplify code)
+    "PTH",    # flake8-use-pathlib (prefer pathlib)
+    "PL",     # Pylint (subset of useful checks)
+    "RUF",    # Ruff-specific rules
+    "NPY",    # NumPy-specific rules
+    "PERF",   # Performance anti-patterns
 ]
 
 # Ignore specific rules
@@ -60,15 +66,38 @@ ignore = [
     "E501",   # line too long (handled by formatter)
     "B008",   # do not perform function calls in argument defaults
     "C408",   # unnecessary dict() call - often clearer for API kwargs
+    "PLR0913", # too many arguments to function call (common in scientific code)
+    "PLR2004", # magic value comparison (common in numerical code)
+    "SIM108", # use ternary operator - sometimes less readable
 ]
 
 # Allow autofix for all enabled rules
 fixable = ["ALL"]
 unfixable = []
 
+[tool.ruff.lint.per-file-ignores]
+# Allow unused imports in __init__.py (re-exports)
+"__init__.py" = ["F401"]
+# Examples can have more relaxed rules
+"examples/*.py" = ["PLR0915", "PLW0603"]
+# Tests can use assert and have longer functions
+"tests/*.py" = ["S101", "PLR0915"]
+
 [tool.ruff.lint.isort]
 # Group imports: standard library, third-party, local
 known-first-party = ["cfd_viz"]
+# Force single line imports for clarity
+force-single-line = false
+# Combine as imports on same line
+combine-as-imports = true
+
+[tool.ruff.lint.pylint]
+# Maximum number of arguments for functions
+max-args = 10
+# Maximum number of local variables
+max-locals = 20
+# Maximum number of branches
+max-branches = 15
 
 [tool.ruff.format]
 # Use double quotes for strings
