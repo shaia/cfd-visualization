@@ -8,8 +8,7 @@ This example demonstrates animation capabilities:
 3. Creating streamline animations
 4. Creating vector field animations
 5. Creating multi-panel animations
-6. Particle trace animations
-7. Saving animations to different formats
+6. Saving animations to different formats
 
 Usage:
     python examples/animation_creation.py
@@ -34,7 +33,6 @@ except ImportError:
     sys.exit(1)
 
 from cfd_viz.animation import (
-    AnimationFrames,
     create_animation_frames,
     create_cfd_colormap,
     create_field_animation,
@@ -43,10 +41,8 @@ from cfd_viz.animation import (
     create_streamline_animation,
     create_vector_animation,
     export_frame_to_image,
-    initialize_particles,
     save_animation,
 )
-from cfd_viz.fields import magnitude, vorticity
 
 
 def generate_time_series_data():

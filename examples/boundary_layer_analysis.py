@@ -37,7 +37,6 @@ from cfd_viz.analysis import (
     compute_wall_shear_distribution,
 )
 from cfd_viz.common import read_vtk_file
-from cfd_viz.plotting import plot_boundary_layer_profiles
 
 
 def run_simulation():
