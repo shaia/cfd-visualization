@@ -17,8 +17,6 @@ Requirements:
     - cfd_python >= 0.1.6 (optional, demonstrates fallback)
 """
 
-import sys
-
 from cfd_viz import (
     has_cfd_python,
     get_cfd_python_version,
@@ -73,7 +71,7 @@ def demo_require_function():
         # Call require_cfd_python to ensure it's available
         require_cfd_python("this feature")
         import cfd_python
-        return f"Using cfd-python {cfd_python.get_version()}"
+        return f"Using cfd-python {cfd_python.__version__}"
 
     try:
         result = feature_requiring_cfd_python()
