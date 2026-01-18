@@ -31,14 +31,12 @@ except ImportError:
     sys.exit(1)
 
 from cfd_viz.analysis import (
-    CaseComparison,
     compare_fields,
     compute_error_norms,
     compute_field_difference,
 )
 from cfd_viz.common import read_vtk_file
-from cfd_viz.fields import magnitude, vorticity
-from cfd_viz.plotting import plot_field_difference
+from cfd_viz.fields import magnitude
 
 
 def run_case(nx, ny, steps, output_name):

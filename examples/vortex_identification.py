@@ -41,7 +41,6 @@ from cfd_viz.fields import (
     q_criterion,
     vorticity,
 )
-from cfd_viz.plotting import plot_contour_field, plot_streamlines
 
 
 def run_simulation():

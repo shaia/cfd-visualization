@@ -31,17 +31,14 @@ except ImportError:
     sys.exit(1)
 
 from cfd_viz.analysis import (
-    compute_centerline_profiles,
     compute_mass_flow_rate,
     compute_profile_statistics,
     extract_horizontal_profile,
     extract_line_profile,
-    extract_multiple_profiles,
     extract_vertical_profile,
 )
 from cfd_viz.common import read_vtk_file
 from cfd_viz.fields import magnitude
-from cfd_viz.plotting import plot_line_profile, plot_multiple_profiles
 
 
 def run_simulation():
