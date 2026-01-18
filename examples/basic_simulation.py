@@ -2,8 +2,10 @@
 """Basic CFD Simulation and Visualization Example.
 
 This example demonstrates how to:
-1. Run a CFD simulation using cfd_python
-2. Visualize the results using cfd_viz
+1. Check system capabilities with print_system_info()
+2. Run a CFD simulation using cfd_python
+3. Compute flow statistics using cfd-python acceleration
+4. Visualize the results using cfd_viz
 
 The simulation creates a lid-driven cavity flow which develops
 vortical structures.
@@ -29,6 +31,7 @@ except ImportError:
     print("Install with: pip install -e ../cfd-python")
     sys.exit(1)
 
+from cfd_viz import print_system_info, compute_flow_statistics
 from cfd_viz.common import read_vtk_file
 from cfd_viz.fields import magnitude, vorticity
 from cfd_viz.plotting import (
@@ -97,18 +100,20 @@ def visualize_results(vtk_file: str):
     # Extract fields
     X, Y = data.X, data.Y
     u, v = data.u, data.v
-    p = data.get("p", np.zeros_like(u))
+    p = data.get("p") or data.get("pressure") or np.zeros_like(u)
     dx, dy = data.dx, data.dy
 
     # Compute derived quantities
     vel_mag = magnitude(u, v)
     omega = vorticity(u, v, dx, dy)
 
-    print(
-        f"Domain: [{data.x.min():.2f}, {data.x.max():.2f}] x [{data.y.min():.2f}, {data.y.max():.2f}]"
-    )
+    # Compute flow statistics using cfd-python acceleration when available
+    print("\nComputing flow statistics...")
+    stats = compute_flow_statistics(data)
+    print(f"Domain: [{data.x.min():.2f}, {data.x.max():.2f}] x [{data.y.min():.2f}, {data.y.max():.2f}]")
     print(f"Grid: {data.nx} x {data.ny}")
-    print(f"Max velocity: {np.nanmax(vel_mag):.4f}")
+    print(f"Velocity magnitude - max: {stats['velocity_magnitude']['max']:.4f}, "
+          f"avg: {stats['velocity_magnitude']['avg']:.4f}")
     print(f"Max vorticity: {np.nanmax(np.abs(omega)):.4f}")
 
     # Create visualization
@@ -161,6 +166,10 @@ def main():
     """Main function to run simulation and visualize results."""
     print("CFD Flow Simulation Example")
     print("=" * 40)
+    print()
+
+    # Show system capabilities
+    print_system_info()
     print()
 
     # Run simulation
