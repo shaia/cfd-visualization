@@ -278,7 +278,7 @@ def main():
         return
 
     # Create visualization
-    _vorticity, _Q, _vortex_cores = create_vorticity_visualization(data, output_dir)
+    create_vorticity_visualization(data, output_dir)
 
     print("Vorticity analysis complete!")
 
