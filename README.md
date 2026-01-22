@@ -140,7 +140,7 @@ omega = vorticity(data.u, data.v, data.dx, data.dy)
 ### Statistics with cfd-python Backend
 
 ```python
-from cfd_viz import calculate_field_stats, compute_flow_statistics
+from cfd_viz import compute_flow_statistics
 
 # Uses cfd-python's optimized implementation when available
 stats = compute_flow_statistics(data)
