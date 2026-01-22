@@ -154,13 +154,21 @@ from cfd_viz import print_system_info
 
 print_system_info()
 # Output:
-# CFD-Visualization System Info
+# cfd-visualization System Info
 # ========================================
 # cfd-python available: True
 # cfd-python version: 0.1.6
-# Available backends: ['Scalar', 'SIMD', 'OpenMP']
-# SIMD: avx2
+# Available backends: Scalar, SIMD, OpenMP
+# Has AVX2: True
+# Has NEON: False
+# SIMD backend: avx2
 # GPU available: False
+#
+# Recommended Settings
+# --------------------
+# backend: SIMD
+# simd_backend: avx2
+# use_gpu: False
 ```
 
 ---
