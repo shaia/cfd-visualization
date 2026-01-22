@@ -91,6 +91,89 @@ python scripts/create_monitor.py --watch_dir output/
 python scripts/create_vorticity_analysis.py --latest
 ```
 
+## cfd-python Integration
+
+cfd-visualization integrates seamlessly with [cfd-python](https://github.com/shaia/cfd-python) v0.1.6+ for direct visualization of simulation results.
+
+### Installation with cfd-python
+
+```bash
+# Install with simulation support
+pip install cfd-visualization[simulation]
+
+# Or install everything
+pip install cfd-visualization[full]
+```
+
+### Quick Visualization
+
+```python
+import cfd_python
+from cfd_viz import quick_plot_result
+
+# Run simulation
+result = cfd_python.run_simulation_with_params(nx=64, ny=64, steps=500)
+
+# One-liner visualization
+fig, ax = quick_plot_result(result, field="velocity_magnitude")
+```
+
+### Converting Simulation Results
+
+```python
+from cfd_viz import from_simulation_result, from_cfd_python
+
+# From result dictionary
+data = from_simulation_result(result)
+
+# Or from individual arrays
+data = from_cfd_python(
+    u=result['u'], v=result['v'], p=result['p'],
+    nx=result['nx'], ny=result['ny']
+)
+
+# Now use any cfd_viz function
+from cfd_viz.fields import vorticity
+omega = vorticity(data.u, data.v, data.dx, data.dy)
+```
+
+### Statistics with cfd-python Backend
+
+```python
+from cfd_viz import compute_flow_statistics
+
+# Assuming `data` is defined as in the previous example
+# Uses cfd-python's optimized implementation when available
+stats = compute_flow_statistics(data)
+print(f"Max velocity: {stats['velocity_magnitude']['max']:.4f}")
+```
+
+### System Information
+
+```python
+from cfd_viz import print_system_info
+
+print_system_info()
+# Output:
+# cfd-visualization System Info
+# ========================================
+# cfd-python available: True
+# cfd-python version: 0.1.6
+# Available backends: Scalar, SIMD, OpenMP
+# Has AVX2: True
+# Has NEON: False
+# SIMD backend: avx2
+# GPU available: False
+#
+# Recommended Settings
+# --------------------
+# backend: SIMD
+# simd_backend: avx2
+# use_gpu: False
+```
+
+---
+
 ## Library API
 
 ### Reading VTK Files
