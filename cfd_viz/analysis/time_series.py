@@ -381,7 +381,7 @@ def analyze_convergence(
     iters_to_conv = None
     if not all_converged:
         # Use primary residual for estimate
-        primary_name = list(residuals.keys())[0]
+        primary_name = next(iter(residuals.keys()))
         primary_vals = residuals[primary_name]
         rate = convergence_rates[primary_name]
 

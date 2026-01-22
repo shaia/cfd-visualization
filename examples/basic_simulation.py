@@ -31,7 +31,7 @@ except ImportError:
     print("Install with: pip install -e ../cfd-python")
     sys.exit(1)
 
-from cfd_viz import print_system_info, compute_flow_statistics
+from cfd_viz import compute_flow_statistics, print_system_info
 from cfd_viz.common import read_vtk_file
 from cfd_viz.fields import magnitude, vorticity
 from cfd_viz.plotting import (

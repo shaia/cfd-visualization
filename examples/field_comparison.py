@@ -99,12 +99,12 @@ def compare_grid_resolutions():
     u_diff = compute_field_difference(fine.u, u_coarse_interp)
     v_diff = compute_field_difference(fine.v, v_coarse_interp)
 
-    print(f"\nU-velocity difference:")
+    print("\nU-velocity difference:")
     print(f"  Max absolute: {u_diff.max_abs_diff:.6f}")
     print(f"  RMS: {u_diff.rms_diff:.6f}")
     print(f"  Mean relative: {u_diff.mean_relative_diff * 100:.2f}%")
 
-    print(f"\nV-velocity difference:")
+    print("\nV-velocity difference:")
     print(f"  Max absolute: {v_diff.max_abs_diff:.6f}")
     print(f"  RMS: {v_diff.rms_diff:.6f}")
     print(f"  Mean relative: {v_diff.mean_relative_diff * 100:.2f}%")
@@ -144,11 +144,11 @@ def compare_iteration_counts():
         dy=early.dy,
     )
 
-    print(f"\nVelocity comparison:")
+    print("\nVelocity comparison:")
     print(f"  Early max velocity: {comparison.stats1['max_velocity']:.4f}")
     print(f"  Converged max velocity: {comparison.stats2['max_velocity']:.4f}")
 
-    print(f"\nVelocity difference:")
+    print("\nVelocity difference:")
     print(f"  Max: {comparison.velocity_diff.max_abs_diff:.6f}")
     print(f"  RMS: {comparison.velocity_diff.rms_diff:.6f}")
 

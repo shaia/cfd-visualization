@@ -20,7 +20,6 @@ Requirements:
 import sys
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 # Check for cfd_python
 try:
@@ -208,15 +207,15 @@ def compute_statistics_demo(data):
     stats = compute_profile_statistics(profile)
 
     print("Statistics for vertical profile at x=0.5:")
-    print(f"  U-velocity:")
+    print("  U-velocity:")
     print(f"    Mean: {stats['u_mean']:.4f}")
     print(f"    Std: {stats['u_std']:.4f}")
     print(f"    Max: {stats['u_max']:.4f}")
     print(f"    Min: {stats['u_min']:.4f}")
-    print(f"  V-velocity:")
+    print("  V-velocity:")
     print(f"    Mean: {stats['v_mean']:.4f}")
     print(f"    Max: {stats['v_max']:.4f}")
-    print(f"  Velocity magnitude:")
+    print("  Velocity magnitude:")
     print(f"    Mean: {stats['velocity_mag_mean']:.4f}")
     print(f"    Max: {stats['velocity_mag_max']:.4f}")
 

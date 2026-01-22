@@ -33,8 +33,12 @@ from cfd_viz.analysis.time_series import (
     compute_flow_metrics,
     create_flow_metrics_time_series,
 )
-from cfd_viz.common import DATA_DIR, PLOTS_DIR, ensure_dirs
-from cfd_viz.common import read_vtk_file as _read_vtk_file
+from cfd_viz.common import (
+    DATA_DIR,
+    PLOTS_DIR,
+    ensure_dirs,
+    read_vtk_file as _read_vtk_file,
+)
 
 
 def read_vtk_file(filename: str) -> Optional[Dict[str, Any]]:
@@ -273,7 +277,7 @@ class CFDMonitor:
         Vorticity:
         Max |ω|: {snapshot.max_vorticity:.4f} 1/s
 
-        Grid: {data["nx"]} × {data["ny"]}
+        Grid: {data["nx"]} x {data["ny"]}
         File: {os.path.basename(data["filename"])}
         Time: {time.strftime("%H:%M:%S", time.localtime(snapshot.timestamp))}
 
@@ -395,11 +399,14 @@ class VTKFileHandler(FileSystemEventHandler):
             self.monitor.process_new_file(event.src_path)
 
     def on_modified(self, event):
-        if not event.is_directory and event.src_path.endswith(".vtk"):
+        if (
+            not event.is_directory
+            and event.src_path.endswith(".vtk")
+            and event.src_path != self.monitor.last_processed_file
+        ):
             # Check if this is a new file or just an update
-            if event.src_path != self.monitor.last_processed_file:
-                time.sleep(0.5)
-                self.monitor.process_new_file(event.src_path)
+            time.sleep(0.5)
+            self.monitor.process_new_file(event.src_path)
 
 
 def manual_monitoring(watch_dir, output_dir, interval=2.0):

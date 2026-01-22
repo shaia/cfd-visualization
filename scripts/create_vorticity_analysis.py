@@ -23,8 +23,13 @@ from typing import Any, Dict, Optional
 import matplotlib.pyplot as plt
 import numpy as np
 
-from cfd_viz.common import DATA_DIR, PLOTS_DIR, ensure_dirs, find_vtk_files
-from cfd_viz.common import read_vtk_file as _read_vtk_file
+from cfd_viz.common import (
+    DATA_DIR,
+    PLOTS_DIR,
+    ensure_dirs,
+    find_vtk_files,
+    read_vtk_file as _read_vtk_file,
+)
 from cfd_viz.fields.vorticity import (
     circulation,
     detect_vortex_cores,
@@ -273,7 +278,7 @@ def main():
         return
 
     # Create visualization
-    vorticity, Q, vortex_cores = create_vorticity_visualization(data, output_dir)
+    create_vorticity_visualization(data, output_dir)
 
     print("Vorticity analysis complete!")
 

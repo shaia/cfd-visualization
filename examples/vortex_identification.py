@@ -70,7 +70,7 @@ def compute_vorticity_analysis(data):
 
     omega = vorticity(data.u, data.v, data.dx, data.dy)
 
-    print(f"Vorticity field computed")
+    print("Vorticity field computed")
     print(f"  Min vorticity: {np.min(omega):.4f}")
     print(f"  Max vorticity: {np.max(omega):.4f}")
     print(f"  Mean |omega|: {np.mean(np.abs(omega)):.4f}")
@@ -144,7 +144,7 @@ def detect_vortex_cores_analysis(omega, Q):
     total_points = cores.size
     fraction = num_vortex_points / total_points * 100
 
-    print(f"Vortex cores detected using combined omega and Q criteria")
+    print("Vortex cores detected using combined omega and Q criteria")
     print(f"  Number of vortex points: {num_vortex_points}")
     print(f"  Fraction of domain: {fraction:.2f}%")
 

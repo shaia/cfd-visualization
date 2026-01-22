@@ -6,9 +6,9 @@ Functions for exporting animation frames to image files and saving animations.
 from pathlib import Path
 from typing import List, Tuple, Union
 
-import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import animation
 from matplotlib.figure import Figure
 
 from .frames import AnimationFrames, FrameData

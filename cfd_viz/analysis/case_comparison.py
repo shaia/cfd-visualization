@@ -272,9 +272,9 @@ def parameter_sweep_analysis(
 
     for stats in statistics:
         d = stats.to_dict()
-        for key in metrics:
+        for key, values in metrics.items():
             if key in d:
-                metrics[key].append(d[key])
+                values.append(d[key])
 
     # Calculate trends (linear fit)
     trends: Dict[str, Tuple[float, float]] = {}

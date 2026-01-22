@@ -29,8 +29,13 @@ from cfd_viz.analysis.flow_features import (
     compute_spatial_fluctuations,
     detect_wake_regions,
 )
-from cfd_viz.common import DATA_DIR, PLOTS_DIR, ensure_dirs, find_vtk_files
-from cfd_viz.common import read_vtk_file as _read_vtk_file
+from cfd_viz.common import (
+    DATA_DIR,
+    PLOTS_DIR,
+    ensure_dirs,
+    find_vtk_files,
+    read_vtk_file as _read_vtk_file,
+)
 
 
 def read_vtk_file(filename: str) -> Optional[Dict[str, Any]]:
@@ -364,7 +369,7 @@ def create_cross_section_analysis(data, output_dir="visualization_output"):
     Domain:
     x: [{x.min():.3f}, {x.max():.3f}] m
     y: [{y.min():.3f}, {y.max():.3f}] m
-    Grid: {len(x)} × {len(y)}
+    Grid: {len(x)} x {len(y)}
 
     Velocity:
     Max |v|: {np.max(velocity_mag):.3f} m/s

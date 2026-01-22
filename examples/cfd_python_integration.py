@@ -30,12 +30,12 @@ except ImportError:
     sys.exit(1)
 
 from cfd_viz import (
-    print_system_info,
-    get_system_info,
-    get_recommended_settings,
-    quick_plot_data,
-    compute_flow_statistics,
     calculate_field_stats,
+    compute_flow_statistics,
+    get_recommended_settings,
+    get_system_info,
+    print_system_info,
+    quick_plot_data,
 )
 from cfd_viz.common import read_vtk_file
 

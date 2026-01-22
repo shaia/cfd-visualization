@@ -18,10 +18,10 @@ Requirements:
 """
 
 from cfd_viz import (
-    has_cfd_python,
-    get_cfd_python_version,
-    require_cfd_python,
     check_cfd_python_version,
+    get_cfd_python_version,
+    has_cfd_python,
+    require_cfd_python,
 )
 
 
@@ -129,6 +129,7 @@ def demo_graceful_fallback():
     print("-" * 40)
 
     import numpy as np
+
     from cfd_viz import calculate_field_stats
 
     # Create sample data
