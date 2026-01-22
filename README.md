@@ -142,6 +142,7 @@ omega = vorticity(data.u, data.v, data.dx, data.dy)
 ```python
 from cfd_viz import compute_flow_statistics
 
+# Assuming `data` is defined as in the previous example
 # Uses cfd-python's optimized implementation when available
 stats = compute_flow_statistics(data)
 print(f"Max velocity: {stats['velocity_magnitude']['max']:.4f}")
