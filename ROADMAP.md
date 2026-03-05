@@ -1,832 +1,294 @@
-# CFD-Visualization Future Roadmap
+# CFD-Visualization Roadmap
 
-This document outlines planned enhancements and new features for cfd-visualization.
+This document outlines planned enhancements for cfd-visualization, organized by priority and release target.
 
-**Last Updated:** 2026-01-22
+**Last Updated:** 2026-03-05
 **Current Version:** 0.1.0
-**Target Version:** 0.2.0+
 
 ---
 
-## Overview
+## Current Capabilities
 
-`cfd-visualization` provides visualization and analysis tools for CFD simulation results. This roadmap focuses on enhancing visualization capabilities, improving integration with simulation libraries, and adding interactive features.
-
-### Current Capabilities
-
-- **VTK I/O**: `read_vtk_file()`, `VTKData` class
-- **Field computations**: Vorticity, gradients, magnitude, derived fields
-- **Plotting**: Contours, vectors, streamlines, quiver plots
-- **Analysis**: Boundary layer, line extraction, case comparison, flow features
+- **VTK I/O**: `read_vtk_file()`, `VTKData` container class
+- **Field computations**: Vorticity, gradients, magnitude, Q-criterion, lambda2, derived fields
+- **Plotting**: Contours, vectors, streamlines, quiver plots, convergence history
+- **Analysis**: Boundary layer, line extraction, case comparison, flow features, time series
 - **Animation**: Frame generation, GIF/MP4 export
-- **Interactive**: Plotly dashboards
+- **Interactive**: Plotly dashboards and heatmaps
+- **cfd-python integration**: Conversion utilities, quick plotting, statistics, system info
 
 ---
 
-## Phase 1: Integration with cfd-python ✅ COMPLETE
+## Phase 1: cfd-python Integration - COMPLETE
 
-**Priority:** P1 - Enables seamless simulation-to-visualization workflow
-**Estimated Effort:** 2-3 days
-**Status:** ✅ Completed (2026-01-22)
+**Status:** Completed (2026-01-22)
 
-### Goals
+- [x] Conversion utilities (`cfd_viz/convert.py`) - `from_cfd_python()`, `from_simulation_result()`, `to_cfd_python()`
+- [x] Quick plotting wrapper (`cfd_viz/quick.py`) - `quick_plot()`, `quick_plot_result()`, `quick_plot_data()`
+- [x] Statistics with cfd-python acceleration (`cfd_viz/stats.py`)
+- [x] Backend-aware system info (`cfd_viz/info.py`)
+- [x] Integration tests and examples
 
-- Provide seamless data flow from cfd-python simulations to visualization
-- Enable direct visualization of simulation results
-- Bi-directional data conversion utilities
+---
+
+## Phase 2: Foundation & Code Quality
+
+**Priority:** P0 - Must-have before adding features
+**Target:** v0.2.0
+
+The VTK reader (`cfd_viz/common/vtk_reader.py`) is 240 lines with zero dedicated tests. VTKData accepts any data without validation. The version string is duplicated between `pyproject.toml` and `__init__.py`. These are trust issues for a library used in research.
 
 ### Tasks
 
-- [x] **1.1 Create conversion utilities**
-  ```python
-  # cfd_viz/convert.py
-  """Conversion utilities for cfd-python integration."""
-
-  import numpy as np
-  from .common import VTKData
-
-  def from_cfd_python(
-      u: list, v: list, p: list,
-      nx: int, ny: int,
-      xmin: float = 0.0, xmax: float = 1.0,
-      ymin: float = 0.0, ymax: float = 1.0
-  ) -> VTKData:
-      """Convert cfd_python simulation results to VTKData for visualization.
-
-      Args:
-          u: Flat list of u-velocity values
-          v: Flat list of v-velocity values
-          p: Flat list of pressure values
-          nx: Number of grid points in x
-          ny: Number of grid points in y
-          xmin, xmax, ymin, ymax: Domain bounds
-
-      Returns:
-          VTKData object ready for visualization
-      """
-      dx = (xmax - xmin) / (nx - 1) if nx > 1 else 1.0
-      dy = (ymax - ymin) / (ny - 1) if ny > 1 else 1.0
-
-      return VTKData(
-          u=np.array(u).reshape((ny, nx)),
-          v=np.array(v).reshape((ny, nx)),
-          p=np.array(p).reshape((ny, nx)) if p else None,
-          x=np.linspace(xmin, xmax, nx),
-          y=np.linspace(ymin, ymax, ny),
-          dx=dx,
-          dy=dy
-      )
-
-  def to_cfd_python(data: VTKData) -> dict:
-      """Convert VTKData to cfd_python-compatible dictionary.
-
-      Args:
-          data: VTKData object
-
-      Returns:
-          Dictionary with flat lists compatible with cfd_python functions
-      """
-      return {
-          'u': data.u.flatten().tolist(),
-          'v': data.v.flatten().tolist(),
-          'p': data.p.flatten().tolist() if data.p is not None else None,
-          'nx': data.u.shape[1],
-          'ny': data.u.shape[0],
-          'x': data.x.tolist() if isinstance(data.x, np.ndarray) else data.x,
-          'y': data.y.tolist() if isinstance(data.y, np.ndarray) else data.y,
-      }
-  ```
-
-- [x] **1.2 Add quick plotting wrapper**
-  ```python
-  # cfd_viz/quick.py
-  """Quick visualization functions for simulation results."""
-
-  from .convert import from_cfd_python
-  from .fields import magnitude, vorticity
-  from .plotting import plot_contour_field, plot_velocity_field
-
-  def quick_plot(
-      u: list, v: list,
-      nx: int, ny: int,
-      field: str = "velocity_magnitude",
-      **kwargs
-  ):
-      """Quick visualization of simulation results.
-
-      Args:
-          u, v: Velocity component lists
-          nx, ny: Grid dimensions
-          field: Field to plot - "velocity_magnitude", "vorticity", "u", "v"
-          **kwargs: Additional arguments passed to plot_contour_field
-
-      Returns:
-          matplotlib figure
-      """
-      data = from_cfd_python(u, v, None, nx, ny)
-      X, Y = np.meshgrid(data.x, data.y)
-
-      if field == "velocity_magnitude":
-          field_data = magnitude(data.u, data.v)
-          title = "Velocity Magnitude"
-      elif field == "vorticity":
-          field_data = vorticity(data.u, data.v, data.dx, data.dy)
-          title = "Vorticity"
-      elif field == "u":
-          field_data = data.u
-          title = "U Velocity"
-      elif field == "v":
-          field_data = data.v
-          title = "V Velocity"
-      else:
-          raise ValueError(f"Unknown field: {field}")
-
-      return plot_contour_field(X, Y, field_data, title=title, **kwargs)
-  ```
-
-- [x] **1.3 Export integration utilities in package**
-  ```python
-  # Update cfd_viz/__init__.py
-  from .convert import from_cfd_python, to_cfd_python
-  from .quick import quick_plot
-  ```
-
-- [x] **1.4 Add integration tests**
-
-- [x] **1.5 Document integration in examples**
+- [ ] **2.1 Add pytest configuration** to `pyproject.toml` - testpaths, markers, filterwarnings
+- [ ] **2.2 Write VTK reader tests** - STRUCTURED_POINTS/RECTILINEAR_GRID parsing, malformed files, edge cases (empty fields, single-row grids)
+- [ ] **2.3 Add VTKData validation** - verify field shapes match `(ny, nx)` on construction, warn on NaN/inf, add `__repr__` for debugging
+- [ ] **2.4 Normalize field naming** - add `FIELD_ALIASES` mapping so `data["pressure"]` and `data["p"]` both work; standardize across all modules
+- [ ] **2.5 Single-source version** - use hatchling dynamic version or `importlib.metadata`; remove the duplication
+- [ ] **2.6 Add integration test** - end-to-end: create VTK data in memory, read it, compute vorticity, plot to figure, assert no exceptions
 
 ### Success Criteria
 
-- Simulation results can be directly visualized with one function call
-- VTK files can be loaded and converted to cfd_python format
-- Integration is documented with examples
+- VTK reader has dedicated test coverage
+- VTKData raises `ValueError` for mismatched field shapes
+- Version appears in exactly one source file
 
 ---
 
-## Phase 2: Enhanced Jupyter Integration
+## Phase 3: Global Configuration System
+
+**Priority:** P1 - Biggest daily-use friction point
+**Target:** v0.2.0
+
+Every plotting function has hardcoded defaults (`cmap="viridis"`, `figsize=(8,6)`, `dpi=150`). A researcher who prefers a specific colormap for publications must pass it to every single call. There are 18+ hardcoded colormap strings across plotting modules.
+
+### Tasks
+
+- [ ] **3.1 Create `PlotDefaults` dataclass** - `cmap`, `diverging_cmap`, `figsize`, `dpi`, `levels`, `font_size`. Provide `get_defaults()` / `set_defaults()` functions
+- [ ] **3.2 Add context manager** - `with cfd_viz.plot_context(cmap="coolwarm", dpi=300):` for temporary overrides
+- [ ] **3.3 Support config file** - read `[tool.cfd_viz]` from pyproject.toml or standalone `cfd_viz.toml` for project-level defaults
+- [ ] **3.4 Migrate plotting functions** - replace hardcoded defaults with `get_defaults()` calls across all plotting modules
+- [ ] **3.5 Add configuration tests** - default override, context manager nesting, config file loading
+
+### Success Criteria
+
+- `cfd_viz.set_defaults(cmap="coolwarm")` changes all subsequent plots
+- Context manager correctly restores previous defaults
+- All existing examples and tests pass without changes
+
+---
+
+## Phase 4: CLI Tooling & Entry Points
+
+**Priority:** P1 - Registers existing orphaned code
+**Target:** v0.3.0
+
+Five scripts exist in `scripts/` but are not registered as package entry points. Users must run `python scripts/create_animation.py` instead of a proper CLI command.
+
+### Tasks
+
+- [ ] **4.1 Register entry points** in `pyproject.toml` - `[project.scripts]` section
+- [ ] **4.2 Create unified `cfd-viz` CLI** - single entry point with argparse subcommands dispatching to existing scripts
+- [ ] **4.3 Add batch processing** - `cfd-viz batch --config batch.toml` for processing multiple VTK files in one run
+- [ ] **4.4 Add `cfd-viz info`** - wraps existing `print_system_info()`, shows backends and optional deps
+- [ ] **4.5 Add progress indicators** - simple stderr output for batch operations and animation rendering (no extra dependency)
+
+### Success Criteria
+
+- `pip install -e .` makes `cfd-viz` command available
+- `cfd-viz info` prints system capabilities
+- `cfd-viz batch` processes multiple files from config
+
+---
+
+## Phase 5: Jupyter Integration
 
 **Priority:** P2 - Enhanced interactivity
-**Estimated Effort:** 2-3 days
-
-### Goals
-
-- Rich display in Jupyter notebooks
-- Interactive widgets for visualization parameters
-- Live simulation visualization
+**Target:** v0.3.0
 
 ### Tasks
 
-- [ ] **2.1 Add `_repr_html_` for VTKData**
-  ```python
-  class VTKData:
-      def _repr_html_(self) -> str:
-          import io
-          import base64
-          import matplotlib.pyplot as plt
-
-          fig, ax = plt.subplots(figsize=(6, 4))
-          speed = np.sqrt(self.u**2 + self.v**2)
-          im = ax.contourf(self.x, self.y, speed, levels=20, cmap='viridis')
-          ax.set_xlabel('x')
-          ax.set_ylabel('y')
-          ax.set_title('Velocity Magnitude')
-          plt.colorbar(im, ax=ax)
-
-          buf = io.BytesIO()
-          fig.savefig(buf, format='png', dpi=100, bbox_inches='tight')
-          plt.close(fig)
-          buf.seek(0)
-          img_str = base64.b64encode(buf.read()).decode()
-
-          return f"""
-          <div style="border: 1px solid #ccc; padding: 10px; display: inline-block;">
-              <b>VTKData</b>: {self.u.shape[1]} × {self.u.shape[0]}<br>
-              <img src="data:image/png;base64,{img_str}" />
-          </div>
-          """
-  ```
-
-- [ ] **2.2 Interactive visualization widgets**
-  ```python
-  # cfd_viz/jupyter.py
-  """Jupyter notebook integration."""
-
-  def interactive_contour(data: VTKData):
-      """Create interactive contour plot with field selector."""
-      from ipywidgets import interact, Dropdown, FloatSlider
-      import matplotlib.pyplot as plt
-
-      @interact(
-          field=Dropdown(options=['velocity', 'vorticity', 'u', 'v', 'p']),
-          levels=FloatSlider(min=10, max=50, value=20),
-          colormap=Dropdown(options=['viridis', 'jet', 'coolwarm', 'plasma'])
-      )
-      def plot(field, levels, colormap):
-          # Plot logic here
-          ...
-  ```
-
-- [ ] **2.3 Live animation display**
-  ```python
-  def animate_in_notebook(
-      vtk_files: list,
-      field: str = "velocity_magnitude",
-      interval: int = 100
-  ):
-      """Display animation inline in Jupyter notebook."""
-      from IPython.display import HTML
-      from matplotlib.animation import FuncAnimation
-
-      # Create animation
-      ...
-      return HTML(anim.to_jshtml())
-  ```
-
-- [ ] **2.4 Add ipywidgets optional dependency**
-  ```toml
-  [project.optional-dependencies]
-  jupyter = ["ipywidgets>=8.0"]
-  ```
+- [ ] **5.1 Add `_repr_html_` to VTKData** - grid dimensions, available fields, field statistics in a formatted HTML table (no extra dependency)
+- [ ] **5.2 Create `cfd_viz/jupyter.py`** - `explore_field(data)` with ipywidgets sliders for colormap, levels, field selection
+- [ ] **5.3 Inline animation display** - return HTML5 video via `IPython.display.HTML`
+- [ ] **5.4 Add ipywidgets optional dependency** - `jupyter = ["ipywidgets>=8.0"]`
 
 ### Success Criteria
 
-- VTKData displays preview in Jupyter automatically
-- Interactive widgets work for parameter exploration
-- Animations render smoothly inline
+- VTKData shows a summary table when displayed in Jupyter
+- `explore_field(data)` creates interactive widgets
+- Animations play inline in notebooks
 
 ---
 
-## Phase 3: Advanced Plot Types
+## Phase 6: Advanced Plots & Publication Quality
 
-**Priority:** P2 - Enhanced visualization options
-**Estimated Effort:** 3-4 days
-
-### Goals
-
-- Add more visualization types for CFD data
-- Support publication-quality figures
-- Add comparison and overlay plots
+**Priority:** P2 - Enhanced visualization for researchers
+**Target:** v0.4.0
 
 ### Tasks
 
-- [ ] **3.1 Add pressure-velocity coupling visualization**
-  ```python
-  def plot_pressure_velocity(data: VTKData, **kwargs):
-      """Plot pressure contours with velocity vectors overlaid."""
-      ...
-  ```
-
-- [ ] **3.2 Add boundary layer profile plots**
-  ```python
-  def plot_boundary_layer_profile(
-      data: VTKData,
-      x_location: float,
-      wall: str = "bottom"
-  ):
-      """Plot velocity profile at specified x-location."""
-      ...
-  ```
-
-- [ ] **3.3 Add Reynolds stress visualization**
-  ```python
-  def plot_reynolds_stress(
-      u_frames: list,
-      v_frames: list,
-      nx: int, ny: int
-  ):
-      """Compute and plot Reynolds stress from time series."""
-      ...
-  ```
-
-- [ ] **3.4 Add Q-criterion isosurface (for 3D)**
-  ```python
-  def plot_q_criterion(data: VTKData3D, threshold: float = 0.1):
-      """Plot Q-criterion isosurface for vortex identification."""
-      ...
-  ```
-
-- [ ] **3.5 Add comparison subplots**
-  ```python
-  def plot_comparison(
-      datasets: list[VTKData],
-      labels: list[str],
-      field: str = "velocity_magnitude",
-      layout: str = "horizontal"  # or "grid"
-  ):
-      """Create side-by-side comparison plots."""
-      ...
-  ```
+- [ ] **6.1 Comparison subplot layouts** - `plot_comparison(data_list, fields, layout="2x2")` for side-by-side multi-case parameter studies
+- [ ] **6.2 Convergence visualization** - plot velocity vs iteration steps with relative change and threshold lines; accept cfd-python convergence data directly
+- [ ] **6.3 Rankine vortex visualization** - synthetic Rankine vortex for testing/demos with 3D surface plot
+- [ ] **6.4 Physics-based auto-annotations** - detect flow type (cavity, channel, vortex) and annotate with Re, max velocity, recirculation zones
+- [ ] **6.5 Publication export helper** - `save_publication(fig, "figure1", formats=["pdf", "svg", "png"], dpi=600)` with journal column-width presets
+- [ ] **6.6 Pressure-velocity coupling plot** - overlaid pressure contours with velocity vectors
 
 ### Success Criteria
 
-- New plot types are documented with examples
-- Plots are publication-quality with proper labels
-- Comparison plots work for multiple datasets
+- Comparison layouts work for 2-6 cases
+- Publication helper produces journal-ready figures
+- Auto-annotations correctly identify flow features
 
 ---
 
-## Phase 4: 3D Visualization Support
+## Phase 7: Analysis Enhancements & Validation Data
 
-**Priority:** P2 - Extends to 3D simulations
-**Estimated Effort:** 4-5 days
-
-### Goals
-
-- Support 3D VTK data
-- Add 3D plotting capabilities
-- Enable slice and isosurface visualization
+**Priority:** P2 - Solver validation and data manipulation
+**Target:** v0.4.0
 
 ### Tasks
 
-- [ ] **4.1 Create VTKData3D class**
-  ```python
-  @dataclass
-  class VTKData3D:
-      """Container for 3D CFD field data."""
-      u: np.ndarray  # Shape: (nz, ny, nx)
-      v: np.ndarray
-      w: np.ndarray
-      p: np.ndarray | None
-      x: np.ndarray
-      y: np.ndarray
-      z: np.ndarray
-      dx: float
-      dy: float
-      dz: float
-  ```
-
-- [ ] **4.2 Add 3D VTK file reading**
-  ```python
-  def read_vtk_3d(filename: str) -> VTKData3D:
-      """Read 3D structured VTK file."""
-      ...
-  ```
-
-- [ ] **4.3 Add slice extraction**
-  ```python
-  def extract_slice(
-      data: VTKData3D,
-      plane: str = "xy",  # "xy", "xz", "yz"
-      location: float = 0.5  # Normalized position
-  ) -> VTKData:
-      """Extract 2D slice from 3D data."""
-      ...
-  ```
-
-- [ ] **4.4 Add PyVista/VTK 3D visualization**
-  ```python
-  def plot_3d_isosurface(
-      data: VTKData3D,
-      field: str,
-      isovalues: list[float]
-  ):
-      """Plot 3D isosurfaces using PyVista."""
-      import pyvista as pv
-      ...
-  ```
-
-- [ ] **4.5 Add 3D streamline tracing**
-  ```python
-  def plot_3d_streamlines(
-      data: VTKData3D,
-      seed_points: np.ndarray
-  ):
-      """Plot 3D streamlines."""
-      ...
-  ```
+- [ ] **7.1 Ghia et al. reference data** - centerline velocity profiles for Re=100, 400, 1000, 3200, 5000, 10000
+- [ ] **7.2 Analytical solutions** - Poiseuille profile, Blasius boundary layer, Taylor-Green vortex decay for comparison plotting
+- [ ] **7.3 Error norm computation** - L1, L2, Linf between computed and reference data
+- [ ] **7.4 Data slicing API** - `data.slice(x=0.5)` returns LineProfile, `data.subset(xmin=0.2, xmax=0.8)` returns cropped VTKData
+- [ ] **7.5 Field caching** - derived fields (vorticity, Q-criterion) cached on VTKData `_cache` dict so repeated calls skip recomputation
 
 ### Success Criteria
 
-- 3D VTK files can be loaded
-- Slices can be extracted for 2D visualization
-- 3D isosurfaces and streamlines render correctly
+- `ghia_data(Re=1000)` returns arrays matching the published paper
+- Error norms can be plotted against grid resolution for convergence studies
+- `data.slice(x=0.5)` integrates with existing line plotting functions
 
 ---
 
-## Phase 5: Animation Enhancements
+## Phase 8: cfd-python v0.2.0+ Alignment
 
-**Priority:** P3 - Improved animation capabilities
-**Estimated Effort:** 2-3 days
+**Priority:** P1 - Leverage upcoming cfd-python features
+**Target:** v0.5.0
 
-### Goals
-
-- Improve animation quality and performance
-- Add more export formats
-- Support animation scripting
+cfd-python Phase 10 introduces high-level classes (`Grid`, `Simulation`, `SimulationResult`). Phase 11 adds NumPy array support (eliminating list-to-array conversion overhead). Phase 12 explicitly targets cfd-visualization integration.
 
 ### Tasks
 
-- [ ] **5.1 Add MP4 export with codec options**
-  ```python
-  def export_animation(
-      frames: list[VTKData],
-      output: str,
-      fps: int = 30,
-      codec: str = "h264",  # or "hevc", "prores"
-      quality: str = "high"  # "low", "medium", "high"
-  ):
-      """Export animation with codec control."""
-      ...
-  ```
-
-- [ ] **5.2 Add parallel frame rendering**
-  ```python
-  def render_frames_parallel(
-      vtk_files: list[str],
-      output_dir: str,
-      n_workers: int = 4,
-      **plot_kwargs
-  ):
-      """Render frames in parallel for faster animation creation."""
-      from concurrent.futures import ProcessPoolExecutor
-      ...
-  ```
-
-- [ ] **5.3 Add animation scripting**
-  ```python
-  class AnimationScript:
-      """Script for complex animations with camera moves, etc."""
-
-      def __init__(self, frames: list[VTKData]):
-          self.frames = frames
-          self.keyframes = []
-
-      def add_camera_move(self, start_frame: int, end_frame: int,
-                          start_view: dict, end_view: dict):
-          """Add camera movement keyframe."""
-          ...
-
-      def add_annotation(self, frame: int, text: str, position: tuple):
-          """Add text annotation at specific frame."""
-          ...
-
-      def render(self, output: str):
-          """Render the scripted animation."""
-          ...
-  ```
-
-- [ ] **5.4 Add time annotations and scale bars**
+- [ ] **8.1 Adapter for `SimulationResult` class** - duck-typed conversion accepting any object with `.u`, `.v`, `.p`, `.grid` attributes
+- [ ] **8.2 Adapter for `Grid` class** - convert to cfd-viz coordinate arrays
+- [ ] **8.3 Zero-copy NumPy path** - detect ndarray input in `convert.py` and use directly instead of `np.array(list)`
+- [ ] **8.4 Validation visualization** - plotting functions for Ghia comparison, Poiseuille profile overlay, Taylor-Green energy decay (uses Phase 7 reference data)
+- [ ] **8.5 Performance benchmark visualization** - plot backend comparison results: grid-size vs time, speedup ratios
+- [ ] **8.6 Bump minimum cfd-python version** - update optional dependency to `>=0.2.0` with 0.1.6 fallback
 
 ### Success Criteria
 
-- Animations export quickly with parallel rendering
-- Multiple codecs supported
-- Scripted animations work correctly
+- `from_simulation(result)` works for both dict-based (v0.1.6) and class-based (v0.2.0+) results
+- NumPy arrays pass through without list conversion
+- Validation plots match expected reference comparisons
 
 ---
 
-## Phase 6: Interactive Dashboards
+## Phase 9: Animation & Interactive Enhancements
 
-**Priority:** P3 - Web-based visualization
-**Estimated Effort:** 3-4 days
-
-### Goals
-
-- Enhance Plotly dashboard capabilities
-- Add real-time simulation monitoring
-- Support web deployment
+**Priority:** P3 - Dynamic visualization
+**Target:** v0.6.0
 
 ### Tasks
 
-- [ ] **6.1 Enhance interactive dashboard**
-  ```python
-  def create_dashboard(
-      data: VTKData | list[VTKData],
-      port: int = 8050
-  ):
-      """Create comprehensive Dash-based visualization dashboard."""
-      import dash
-      from dash import dcc, html
-      ...
-  ```
-
-- [ ] **6.2 Add real-time monitoring**
-  ```python
-  class SimulationMonitor:
-      """Real-time dashboard for running simulations."""
-
-      def __init__(self, output_dir: str, refresh_interval: int = 1000):
-          self.output_dir = output_dir
-          self.refresh_interval = refresh_interval
-
-      def start(self):
-          """Start monitoring and display dashboard."""
-          ...
-  ```
-
-- [ ] **6.3 Add comparison dashboard**
-  ```python
-  def create_comparison_dashboard(
-      datasets: dict[str, list[VTKData]],
-      labels: list[str]
-  ):
-      """Dashboard for comparing multiple simulation cases."""
-      ...
-  ```
-
-- [ ] **6.4 Add export to standalone HTML**
-  ```python
-  def export_interactive_html(
-      data: VTKData,
-      output: str,
-      include_controls: bool = True
-  ):
-      """Export interactive visualization as standalone HTML file."""
-      ...
-  ```
+- [ ] **9.1 Time annotations on animation frames** - step number, physical time, scale bar overlay
+- [ ] **9.2 Parallel frame rendering** - `ProcessPoolExecutor` for independent frame generation
+- [ ] **9.3 MP4 export** - ffmpeg-based output with codec and quality options
+- [ ] **9.4 Enhanced Plotly dashboard** - field selector dropdown, time slider, case comparison tabs
+- [ ] **9.5 Standalone HTML export** - self-contained HTML file with embedded data, no running server required
+- [ ] **9.6 Real-time simulation monitoring** - integrate with cfd-python callbacks; build on existing `scripts/create_monitor.py`
 
 ### Success Criteria
 
-- Dashboard runs locally with live updates
-- Multiple cases can be compared interactively
-- HTML export works standalone without server
+- Animations include configurable time annotations
+- Frame rendering is 2-4x faster with parallelism
+- HTML export works standalone without a server
 
 ---
 
-## Phase 7: Analysis Enhancements
+## Phase 10: 3D Visualization
 
-**Priority:** P2 - Enhanced analysis tools
-**Estimated Effort:** 3-4 days
+**Priority:** P3 - Depends on cfd-python Phase 15 (3D grid support)
+**Target:** v1.0.0
 
-### Goals
-
-- Add more analysis capabilities
-- Support statistical analysis of time series
-- Add validation tools
+3D visualization adds a heavy optional dependency (PyVista) that most 2D users don't need. Deliberately last, aligned with cfd-python's 3D grid support timeline.
 
 ### Tasks
 
-- [ ] **7.1 Add time-averaging**
-  ```python
-  def time_average(frames: list[VTKData]) -> VTKData:
-      """Compute time-averaged fields."""
-      ...
-
-  def fluctuation_fields(
-      frames: list[VTKData],
-      mean: VTKData | None = None
-  ) -> list[VTKData]:
-      """Compute fluctuation fields u' = u - <u>."""
-      ...
-  ```
-
-- [ ] **7.2 Add spectral analysis**
-  ```python
-  def compute_spectrum(
-      frames: list[VTKData],
-      probe_location: tuple[float, float]
-  ) -> dict:
-      """Compute frequency spectrum at probe location."""
-      from scipy.fft import fft, fftfreq
-      ...
-  ```
-
-- [ ] **7.3 Add drag/lift coefficient calculation**
-  ```python
-  def compute_force_coefficients(
-      data: VTKData,
-      body_contour: np.ndarray,
-      rho: float = 1.0,
-      u_inf: float = 1.0
-  ) -> dict:
-      """Compute drag and lift coefficients."""
-      ...
-  ```
-
-- [ ] **7.4 Add Ghia et al. reference data**
-  ```python
-  # cfd_viz/validation/__init__.py
-  """Reference data for validation."""
-
-  GHIA_LID_DRIVEN_CAVITY = {
-      100: {
-          'y': [...],
-          'u_centerline': [...],
-          'x': [...],
-          'v_centerline': [...]
-      },
-      400: {...},
-      1000: {...}
-  }
-
-  def compare_to_ghia(data: VTKData, Re: int) -> dict:
-      """Compare simulation to Ghia et al. (1982) reference."""
-      ...
-  ```
-
-- [ ] **7.5 Add error metrics**
-  ```python
-  def compute_error_metrics(
-      computed: VTKData,
-      reference: VTKData | np.ndarray
-  ) -> dict:
-      """Compute L1, L2, Linf error norms."""
-      ...
-  ```
+- [ ] **10.1 Create VTKData3D class** - extends data model with Z coordinates and w-velocity
+- [ ] **10.2 Add 3D VTK file reading** - STRUCTURED_POINTS/RECTILINEAR_GRID with nz > 1
+- [ ] **10.3 Slice extraction** - `data3d.slice(z=0.5)` returns 2D VTKData compatible with all existing functions
+- [ ] **10.4 PyVista integration** - optional dependency `viz3d = ["pyvista>=0.40"]`, `to_pyvista(data3d)` conversion
+- [ ] **10.5 3D streamline visualization** - using PyVista
 
 ### Success Criteria
 
-- Time-series analysis works correctly
-- Reference data comparisons are easy
-- Error metrics computed accurately
+- 3D VTK files load correctly
+- 2D slices work with all existing plotting functions
+- PyVista renders isosurfaces and streamlines
 
 ---
 
 ## Version Planning
 
-| Version | Phases | Focus | Status |
-| ------- | ------ | ----- | ------ |
-| 0.2.0 | 1, 8 | cfd-python integration (basic + v0.1.6 features) | Ready for release |
-| 0.3.0 | 2, 3 | Jupyter & advanced plots | Planned |
-| 0.4.0 | 4 | 3D visualization | Planned |
-| 0.5.0 | 5, 6 | Animation & dashboards | Planned |
-| 0.6.0 | 7 | Analysis enhancements | Planned |
-
----
-
-## Phase 8: Enhanced cfd-python v0.1.6 Integration ✅ COMPLETE
-
-**Priority:** P1 - Leverage new cfd-python features
-**Estimated Effort:** 2-3 days
-**Status:** ✅ Completed (2026-01-22)
-
-### Background
-
-cfd-python v0.1.6 added significant new capabilities that cfd-visualization can leverage:
-
-- **Backend Availability API**: Query SIMD/OpenMP/CUDA backends at runtime
-- **Derived Fields**: `calculate_field_stats()`, `compute_velocity_magnitude()`, `compute_flow_statistics()`
-- **Error Handling**: Python exception hierarchy with `raise_for_status()`
-- **CPU Features Detection**: `has_avx2()`, `has_neon()`, `get_simd_name()`
-
-### Tasks
-
-- [x] **8.1 Use cfd-python's `calculate_field_stats()` for consistency**
-  ```python
-  # Instead of recomputing statistics, use cfd-python's optimized version
-  def get_field_stats(data: VTKData, field: str = "velocity_magnitude") -> dict:
-      """Get field statistics using cfd-python's optimized function."""
-      try:
-          import cfd_python
-          flat_field = get_field_data(data, field).flatten().tolist()
-          return cfd_python.calculate_field_stats(flat_field)
-      except ImportError:
-          # Fallback to NumPy if cfd-python not available
-          return _compute_stats_numpy(data, field)
-  ```
-
-- [x] **8.2 Leverage `compute_flow_statistics()` for comprehensive analysis**
-  ```python
-  def analyze_flow(data: VTKData) -> dict:
-      """Comprehensive flow analysis using cfd-python backend."""
-      import cfd_python
-
-      u_flat = data.u.flatten().tolist()
-      v_flat = data.v.flatten().tolist()
-      p_flat = data.p.flatten().tolist() if data.p is not None else [0.0] * len(u_flat)
-
-      return cfd_python.compute_flow_statistics(
-          u_flat, v_flat, p_flat,
-          data.u.shape[1], data.u.shape[0]
-      )
-  ```
-
-- [x] **8.3 Add backend-aware performance hints**
-  ```python
-  def get_recommended_settings() -> dict:
-      """Get recommended visualization settings based on available backends."""
-      import cfd_python
-
-      backends = cfd_python.get_available_backends()
-      simd = cfd_python.get_simd_name()
-
-      return {
-          'parallel_rendering': 'OpenMP' in backends,
-          'simd_available': simd != 'none',
-          'gpu_acceleration': 'CUDA' in backends,
-          'recommended_chunk_size': 1024 if 'avx2' in simd else 256,
-      }
-  ```
-
-- [ ] **8.4 Add Rankine vortex visualization (from cfd-python examples)**
-  ```python
-  def create_rankine_vortex(
-      nx: int, ny: int,
-      core_radius: float = 0.3,
-      strength: float = 1.0,
-      xmin: float = 0.0, xmax: float = 1.0,
-      ymin: float = 0.0, ymax: float = 1.0
-  ) -> VTKData:
-      """Create synthetic Rankine vortex for testing and demonstration.
-
-      The Rankine vortex combines:
-      - Solid body rotation inside core (v ~ r)
-      - Irrotational flow outside core (v ~ 1/r)
-
-      This produces the characteristic "volcano" shape in 3D velocity plots.
-      """
-      ...
-
-  def plot_rankine_vortex_3d(
-      data: VTKData,
-      field: str = "velocity_magnitude"
-  ):
-      """Create 3D surface plot of velocity field (Rankine vortex visualization)."""
-      from mpl_toolkits.mplot3d import Axes3D
-      ...
-  ```
-
-- [ ] **8.5 Add physics-based plot annotations**
-  ```python
-  def add_physics_annotations(
-      ax,
-      data: VTKData,
-      flow_type: str = "cavity"  # "cavity", "channel", "vortex"
-  ):
-      """Add physics-relevant annotations to plots.
-
-      For cavity flow: Mark primary vortex center, corner vortices
-      For channel flow: Add analytical Poiseuille profile comparison
-      For vortex: Mark core radius, maximum velocity ring
-      """
-      ...
-  ```
-
-- [ ] **8.6 Add convergence visualization utilities**
-  ```python
-  def plot_convergence_study(
-      step_counts: list[int],
-      max_velocities: list[float],
-      avg_velocities: list[float],
-      threshold: float = 0.01
-  ):
-      """Plot convergence analysis from cfd-python simulation runs.
-
-      Shows:
-      - Velocity vs simulation steps
-      - Relative change (convergence indicator)
-      - Threshold line for convergence criterion
-      """
-      ...
-  ```
-
-### Success Criteria
-
-- Statistics computed via cfd-python when available (faster, consistent)
-- Rankine vortex can be created and visualized with 3D surface plots
-- Convergence plots match cfd-python example output
-- Backend availability influences visualization recommendations
+| Version | Phases | Focus |
+| ------- | ------ | ----- |
+| 0.2.0 | 2, 3 | Foundation, configuration, testing |
+| 0.3.0 | 4, 5 | CLI tooling, Jupyter integration |
+| 0.4.0 | 6, 7 | Advanced plots, validation data, data slicing |
+| 0.5.0 | 8 | cfd-python v0.2.0 alignment |
+| 0.6.0 | 9 | Animation & interactive enhancements |
+| 1.0.0 | 10 | 3D visualization, API stabilization |
 
 ---
 
 ## Ideas Backlog
 
-Items not yet planned but worth considering:
+Items worth considering but not yet scheduled:
 
 ### Visualization
-- [ ] ParaView export support
-- [ ] VDB volume format for 3D
-- [ ] GPU-accelerated rendering (leverage cfd-python CUDA backend)
-- [ ] WebGL-based web viewer
-- [ ] Virtual reality (VR) visualization
-- [ ] 3D velocity surface plots (volcano/Rankine vortex style)
+
+- [ ] ParaView export (`.pvd` series files)
+- [ ] WebGL-based standalone viewer
+- [ ] GPU-accelerated rendering via CUDA interop
 
 ### Analysis
+
 - [ ] Proper Orthogonal Decomposition (POD)
 - [ ] Dynamic Mode Decomposition (DMD)
-- [ ] Machine learning feature extraction
-- [ ] Automatic vortex detection
-- [ ] Coherent structure identification
-- [ ] Analytical solution comparisons (Poiseuille, Blasius, etc.)
+- [ ] Automatic vortex tracking across time series
+- [ ] Analytical solution library expansion (Couette, Stokes, Lamb-Oseen)
 
-### Integration
+### I/O & Interoperability
+
 - [ ] OpenFOAM result import
+- [ ] HDF5 field storage for large datasets
 - [ ] CGNS format support
-- [ ] HDF5 parallel I/O
-- [ ] ParaView Catalyst live coupling
-- [ ] Direct cfd-python simulation callback hooks
 
 ### Tooling
-- [ ] VS Code preview extension
-- [ ] CLI for batch visualization
+
+- [ ] Sphinx documentation site with API reference
 - [ ] Docker image with all dependencies
-- [ ] Backend detection and optimization hints
 
 ---
 
 ## Related Documents
 
 - [README.md](README.md) - User documentation
-- [cfd-python ROADMAP](../cfd-python/ROADMAP.md) - Simulation library roadmap
+- [cfd-python ROADMAP](../cfd-python/ROADMAP.md) - Simulation library roadmap (Phase 12 targets cfd-viz integration)
 
 ---
 
 ## Contributing
 
-Contributions are welcome! Priority areas:
+Contributions welcome! Priority areas:
 
-1. **3D visualization** - PyVista integration
-2. **Animation** - Performance improvements
-3. **Analysis** - Additional flow metrics
-4. **Documentation** - Examples and tutorials
-5. **Testing** - Visualization regression tests
+1. **Testing** - VTK reader and integration tests (Phase 2)
+2. **Configuration** - Global defaults system (Phase 3)
+3. **Analysis** - Validation data and error metrics (Phase 7)
+4. **3D visualization** - PyVista integration (Phase 10)
+5. **Documentation** - Examples and tutorials
