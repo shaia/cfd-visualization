@@ -26,7 +26,9 @@ try:
     import cfd_python
 except ImportError:
     print("Error: cfd_python package not installed.")
-    print("Install with: pip install cfd-python>=0.1.6")
+    from cfd_viz.cfd_python_integration import MIN_CFD_PYTHON_VERSION
+
+    print(f"Install with: pip install cfd-python>={MIN_CFD_PYTHON_VERSION}")
     sys.exit(1)
 
 from cfd_viz import (

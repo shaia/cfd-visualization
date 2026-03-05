@@ -31,6 +31,23 @@ This document outlines planned enhancements for cfd-visualization, organized by 
 
 ---
 
+## Phase 1.5: Backend Abstraction & Version Centralization - COMPLETE
+
+**Status:** Completed (2026-03-05)
+
+The cfd-python integration had inline `if/else` branching scattered across `stats.py` and `info.py`, with hardcoded function names and the version string `"0.1.6"` duplicated in 20+ locations across 7 files. This refactor introduces clean separation via ABC-based backends and a single version constant.
+
+- [x] **1.5.1 Centralize version constant** - `MIN_CFD_PYTHON_VERSION` in `cfd_python_integration.py` as single source of truth; all Python consumers reference it
+- [x] **1.5.2 Create backend ABCs** (`cfd_viz/backends/_base.py`) - `StatsBackend` and `SystemInfoBackend` abstract interfaces
+- [x] **1.5.3 NumPy fallback backend** (`cfd_viz/backends/_numpy.py`) - extracted from inline fallback code in `stats.py` and `info.py`
+- [x] **1.5.4 cfd-python backend** (`cfd_viz/backends/_cfd_python.py`) - extracted `cfd.*` calls into dedicated backend classes
+- [x] **1.5.5 Schema validation** (`cfd_viz/backends/_schema.py`) - key-presence checks for `field_stats` and `system_info` dicts to catch API drift early
+- [x] **1.5.6 Backend registry** (`cfd_viz/backends/_registry.py`) - `get_stats_backend()` / `get_info_backend()` with auto-detection and lazy imports
+- [x] **1.5.7 Rewire stats.py and info.py** - replaced inline if/else with backend dispatch; all existing tests pass with zero modifications
+- [x] **1.5.8 Backend tests** (`tests/backends/`) - dedicated tests for NumPy backend, cfd-python backend, registry, and schema validation
+
+---
+
 ## Phase 2: Foundation & Code Quality
 
 **Priority:** P0 - Must-have before adding features

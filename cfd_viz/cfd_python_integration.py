@@ -14,6 +14,10 @@ Example:
 
 from typing import Any, Optional
 
+#: Minimum required cfd-python version for full integration support.
+#: Update this single constant when bumping the cfd-python dependency.
+MIN_CFD_PYTHON_VERSION = "0.1.6"
+
 # Module-level state for cfd-python detection
 _CFD_PYTHON_AVAILABLE: bool = False
 _CFD_PYTHON_VERSION: Optional[str] = None
@@ -76,7 +80,7 @@ def require_cfd_python(feature: str = "this feature") -> None:
     if not _CFD_PYTHON_AVAILABLE:
         raise ImportError(
             f"cfd-python is required for {feature}. "
-            f"Install with: pip install cfd-python>=0.1.6"
+            f"Install with: pip install cfd-python>={MIN_CFD_PYTHON_VERSION}"
         )
 
 
@@ -97,7 +101,7 @@ def get_cfd_python() -> Any:
     return _cfd_python_module
 
 
-def check_cfd_python_version(min_version: str = "0.1.6") -> bool:
+def check_cfd_python_version(min_version: str = MIN_CFD_PYTHON_VERSION) -> bool:
     """Check if cfd-python meets minimum version requirement.
 
     Args:
@@ -135,7 +139,9 @@ def check_cfd_python_version(min_version: str = "0.1.6") -> bool:
             return True
 
 
-def require_cfd_python_version(min_version: str = "0.1.6", feature: str = "") -> None:
+def require_cfd_python_version(
+    min_version: str = MIN_CFD_PYTHON_VERSION, feature: str = ""
+) -> None:
     """Raise ImportError if cfd-python doesn't meet version requirement.
 
     Args:
