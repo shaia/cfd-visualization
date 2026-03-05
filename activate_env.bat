@@ -1,26 +1,18 @@
 @echo off
-REM Windows batch script to activate the CFD visualization conda environment
+REM Windows batch script to activate the CFD visualization virtual environment
 
-echo Activating CFD Visualization conda environment...
+echo Activating CFD Visualization environment...
 
-REM Check if conda is available
-conda --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo Error: Conda is not installed or not in PATH
-    echo Please install Anaconda or Miniconda first
+REM Check if .venv exists
+if not exist ".venv\Scripts\activate.bat" (
+    echo Error: Virtual environment not found at .venv\
+    echo Run 'uv venv .venv' first to create it.
     pause
     exit /b 1
 )
 
 REM Activate the environment
-conda activate cfd-visualization
-
-if %errorlevel% neq 0 (
-    echo Error: Failed to activate environment 'cfd-visualization'
-    echo Make sure the environment exists. Run setup_env.bat first if needed.
-    pause
-    exit /b 1
-)
+call .venv\Scripts\activate.bat
 
 echo Environment activated successfully!
 echo You can now run Python scripts with all dependencies available.

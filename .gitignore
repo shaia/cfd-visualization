@@ -32,6 +32,9 @@ ENV/
 .conda/
 conda-meta/
 
+# Claude Code
+.claude/
+
 # IDE
 .vscode/
 .idea/
@@ -78,3 +81,4 @@ animation_frames/
 .env.development
 .env.test
 .env.production
+.early.coverage
