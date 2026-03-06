@@ -25,8 +25,29 @@ def validate_field_stats(result: Dict[str, Any]) -> Dict[str, Any]:
     missing = FIELD_STATS_REQUIRED_KEYS - result.keys()
     if missing:
         raise ValueError(
-            f"Backend returned incomplete field stats, missing keys: {missing}"
+            f"Backend returned incomplete field stats, missing keys: {sorted(missing)}"
         )
+    return result
+
+
+FLOW_STATS_REQUIRED_KEYS: Set[str] = {"u", "v", "velocity_magnitude"}
+
+
+def validate_flow_statistics(result: Dict[str, Any]) -> Dict[str, Any]:
+    """Validate and return flow statistics dict.
+
+    Checks top-level keys and validates each nested stats dict.
+
+    Raises:
+        ValueError: If required keys are missing.
+    """
+    missing = FLOW_STATS_REQUIRED_KEYS - result.keys()
+    if missing:
+        raise ValueError(
+            f"Backend returned incomplete flow statistics, missing keys: {sorted(missing)}"
+        )
+    for value in result.values():
+        validate_field_stats(value)
     return result
 
 
@@ -39,6 +60,6 @@ def validate_system_info(result: Dict[str, Any]) -> Dict[str, Any]:
     missing = SYSTEM_INFO_REQUIRED_KEYS - result.keys()
     if missing:
         raise ValueError(
-            f"Backend returned incomplete system info, missing keys: {missing}"
+            f"Backend returned incomplete system info, missing keys: {sorted(missing)}"
         )
     return result
