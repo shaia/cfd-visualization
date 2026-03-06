@@ -6,20 +6,20 @@ A Python library for visualizing CFD (Computational Fluid Dynamics) simulation r
 
 ### Prerequisites
 
-- [Anaconda](https://www.anaconda.com/products/distribution) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
-- [cfd-python](../cfd-python) package for running simulations
+- Python 3.9+
+- [cfd-python](../cfd-python) package for running simulations (optional)
 
 ### Setup
 
 ```bash
-# Create conda environment
-conda env create -f environment.yml
-
-# Activate environment
-conda activate cfd-visualization
-
 # Install package in development mode
 pip install -e .
+
+# Or with optional simulation support
+pip install -e ".[simulation]"
+
+# Or install everything
+pip install -e ".[full]"
 ```
 
 ## Project Structure
