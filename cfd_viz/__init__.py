@@ -42,6 +42,7 @@ __version__ = "0.1.0"
 # Import fields module for easy access
 from . import fields
 from .cfd_python_integration import (
+    MIN_CFD_PYTHON_VERSION,
     check_cfd_python_version,
     get_cfd_python,
     get_cfd_python_version,
@@ -69,6 +70,7 @@ __all__ = [
     # Submodules
     "fields",
     # cfd-python integration
+    "MIN_CFD_PYTHON_VERSION",
     "has_cfd_python",
     "get_cfd_python",
     "get_cfd_python_version",

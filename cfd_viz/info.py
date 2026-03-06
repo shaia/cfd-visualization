@@ -6,11 +6,7 @@ Query cfd-python backend availability and provide optimization recommendations.
 import os
 from typing import Any
 
-from .cfd_python_integration import (
-    get_cfd_python,
-    get_cfd_python_version,
-    has_cfd_python,
-)
+from .backends import get_info_backend, validate_system_info
 
 
 def get_system_info() -> dict[str, Any]:
@@ -25,28 +21,8 @@ def get_system_info() -> dict[str, Any]:
         >>> print(f"SIMD: {info['simd']}")
         >>> print(f"Backends: {info['backends']}")
     """
-    info: dict[str, Any] = {
-        "cfd_python_available": has_cfd_python(),
-        "cfd_python_version": None,
-        "backends": [],
-        "simd": "unknown",
-        "has_simd": False,
-        "has_avx2": False,
-        "has_neon": False,
-        "gpu_available": False,
-    }
-
-    if has_cfd_python():
-        cfd = get_cfd_python()
-        info["cfd_python_version"] = get_cfd_python_version()
-        info["backends"] = cfd.get_available_backends()
-        info["simd"] = cfd.get_simd_name()
-        info["has_simd"] = info["simd"] != "none"
-        info["has_avx2"] = cfd.has_avx2()
-        info["has_neon"] = cfd.has_neon()
-        info["gpu_available"] = cfd.backend_is_available(cfd.BACKEND_CUDA)
-
-    return info
+    backend = get_info_backend()
+    return validate_system_info(backend.get_system_info())
 
 
 def get_recommended_settings() -> dict[str, Any]:

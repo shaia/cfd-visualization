@@ -51,7 +51,9 @@ def demo_version_check():
         return
 
     # Check if version meets requirements
-    min_version = "0.1.6"
+    from cfd_viz.cfd_python_integration import MIN_CFD_PYTHON_VERSION
+
+    min_version = MIN_CFD_PYTHON_VERSION
     if check_cfd_python_version(min_version):
         print(f"Version check passed: >= {min_version}")
     else:
@@ -71,6 +73,7 @@ def demo_require_function():
         # Call require_cfd_python to ensure it's available
         require_cfd_python("this feature")
         import cfd_python
+
         return f"Using cfd-python {cfd_python.__version__}"
 
     try:

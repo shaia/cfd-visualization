@@ -96,7 +96,12 @@ class TestCheckCfdPythonVersion:
             # Should pass for older version requirement
             assert cfd_python_integration.check_cfd_python_version("0.0.1") is True
             # Should pass for current or older version
-            assert cfd_python_integration.check_cfd_python_version("0.1.6") is True
+            assert (
+                cfd_python_integration.check_cfd_python_version(
+                    cfd_python_integration.MIN_CFD_PYTHON_VERSION
+                )
+                is True
+            )
             # Should fail for impossibly high version
             assert cfd_python_integration.check_cfd_python_version("99.0.0") is False
 
@@ -114,8 +119,11 @@ class TestRequireCfdPythonVersion:
         """Should raise ImportError if cfd-python is not installed."""
         if not cfd_python_integration.has_cfd_python():
             with pytest.raises(ImportError) as exc_info:
-                cfd_python_integration.require_cfd_python_version("0.1.6")
-            assert "cfd-python >= 0.1.6 is required" in str(exc_info.value)
+                cfd_python_integration.require_cfd_python_version(
+                    cfd_python_integration.MIN_CFD_PYTHON_VERSION
+                )
+            min_ver = cfd_python_integration.MIN_CFD_PYTHON_VERSION
+            assert f"cfd-python >= {min_ver} is required" in str(exc_info.value)
 
     def test_raises_when_version_too_old(self):
         """Should raise ImportError if version is too old."""
