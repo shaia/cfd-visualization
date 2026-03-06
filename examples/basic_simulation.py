@@ -110,10 +110,14 @@ def visualize_results(vtk_file: str):
     # Compute flow statistics using cfd-python acceleration when available
     print("\nComputing flow statistics...")
     stats = compute_flow_statistics(data)
-    print(f"Domain: [{data.x.min():.2f}, {data.x.max():.2f}] x [{data.y.min():.2f}, {data.y.max():.2f}]")
+    print(
+        f"Domain: [{data.x.min():.2f}, {data.x.max():.2f}] x [{data.y.min():.2f}, {data.y.max():.2f}]"
+    )
     print(f"Grid: {data.nx} x {data.ny}")
-    print(f"Velocity magnitude - max: {stats['velocity_magnitude']['max']:.4f}, "
-          f"avg: {stats['velocity_magnitude']['avg']:.4f}")
+    print(
+        f"Velocity magnitude - max: {stats['velocity_magnitude']['max']:.4f}, "
+        f"avg: {stats['velocity_magnitude']['avg']:.4f}"
+    )
     print(f"Max vorticity: {np.nanmax(np.abs(omega)):.4f}")
 
     # Create visualization

@@ -134,7 +134,10 @@ def example_quick_plot():
 
     # With custom domain bounds
     _fig, ax = quick_plot(
-        u, v, nx, ny,
+        u,
+        v,
+        nx,
+        ny,
         field="vorticity",
         xmin=-0.5,
         xmax=0.5,

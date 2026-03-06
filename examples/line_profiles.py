@@ -222,7 +222,9 @@ def compute_statistics_demo(data):
     return stats
 
 
-def create_visualizations(data, diag_profile, v_profiles, x_locs, h_centerline, v_centerline):
+def create_visualizations(
+    data, diag_profile, v_profiles, x_locs, h_centerline, v_centerline
+):
     """Create visualization plots."""
     print("\n7. Creating Visualizations")
     print("-" * 40)
@@ -239,7 +241,9 @@ def create_visualizations(data, diag_profile, v_profiles, x_locs, h_centerline, 
     for x_loc in x_locs:
         ax1.axvline(x=x_loc, color="white", linestyle="--", linewidth=1)
     ax1.axhline(y=0.5, color="cyan", linestyle="-", linewidth=2, label="H-centerline")
-    ax1.axvline(x=0.5, color="magenta", linestyle="-", linewidth=2, label="V-centerline")
+    ax1.axvline(
+        x=0.5, color="magenta", linestyle="-", linewidth=2, label="V-centerline"
+    )
     ax1.set_xlabel("x")
     ax1.set_ylabel("y")
     ax1.set_title("Flow Field with Profile Lines")
@@ -250,7 +254,9 @@ def create_visualizations(data, diag_profile, v_profiles, x_locs, h_centerline, 
     ax2 = axes[0, 1]
     ax2.plot(diag_profile.distance, diag_profile.u, "b-", label="u")
     ax2.plot(diag_profile.distance, diag_profile.v, "r-", label="v")
-    ax2.plot(diag_profile.distance, diag_profile.velocity_mag, "k-", linewidth=2, label="|V|")
+    ax2.plot(
+        diag_profile.distance, diag_profile.velocity_mag, "k-", linewidth=2, label="|V|"
+    )
     ax2.set_xlabel("Distance along diagonal")
     ax2.set_ylabel("Velocity")
     ax2.set_title("Diagonal Profile (0,0) to (1,1)")
@@ -261,8 +267,13 @@ def create_visualizations(data, diag_profile, v_profiles, x_locs, h_centerline, 
     ax3 = axes[0, 2]
     colors = ["b", "g", "r"]
     for i, (profile, x_loc) in enumerate(zip(v_profiles, x_locs)):
-        ax3.plot(profile.u, profile.y_coords, colors[i] + "-", linewidth=2,
-                label=f"x = {x_loc:.2f}")
+        ax3.plot(
+            profile.u,
+            profile.y_coords,
+            colors[i] + "-",
+            linewidth=2,
+            label=f"x = {x_loc:.2f}",
+        )
     ax3.set_xlabel("u-velocity")
     ax3.set_ylabel("y")
     ax3.set_title("Vertical Profiles (u vs y)")
@@ -292,8 +303,13 @@ def create_visualizations(data, diag_profile, v_profiles, x_locs, h_centerline, 
     # Plot 6: Velocity magnitude profiles comparison
     ax6 = axes[1, 2]
     for i, (profile, x_loc) in enumerate(zip(v_profiles, x_locs)):
-        ax6.plot(profile.velocity_mag, profile.y_coords, colors[i] + "-",
-                linewidth=2, label=f"x = {x_loc:.2f}")
+        ax6.plot(
+            profile.velocity_mag,
+            profile.y_coords,
+            colors[i] + "-",
+            linewidth=2,
+            label=f"x = {x_loc:.2f}",
+        )
     ax6.set_xlabel("Velocity magnitude |V|")
     ax6.set_ylabel("y")
     ax6.set_title("Velocity Magnitude Profiles")
@@ -337,8 +353,7 @@ def main():
 
     # Create visualizations
     create_visualizations(
-        data, diag_profile, v_profiles, x_locs,
-        h_centerline, v_centerline
+        data, diag_profile, v_profiles, x_locs, h_centerline, v_centerline
     )
 
     print("\n" + "=" * 40)

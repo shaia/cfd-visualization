@@ -229,8 +229,12 @@ def create_visualizations(data, omega, Q, lam2, enst, cores, vortex_center):
     vel_mag = magnitude(data.u, data.v)
     c5 = ax5.contourf(data.X, data.Y, vel_mag, levels=30, cmap="viridis", alpha=0.7)
     plt.colorbar(c5, ax=ax5, label="|V|")
-    ax5.contour(data.X, data.Y, cores.astype(int), levels=[0.5], colors="red", linewidths=2)
-    ax5.streamplot(data.X, data.Y, data.u, data.v, density=1.5, color="white", linewidth=0.5)
+    ax5.contour(
+        data.X, data.Y, cores.astype(int), levels=[0.5], colors="red", linewidths=2
+    )
+    ax5.streamplot(
+        data.X, data.Y, data.u, data.v, density=1.5, color="white", linewidth=0.5
+    )
     ax5.set_xlabel("x")
     ax5.set_ylabel("y")
     ax5.set_title("Velocity + Vortex Cores (red)")
@@ -242,7 +246,9 @@ def create_visualizations(data, omega, Q, lam2, enst, cores, vortex_center):
     Q_positive = np.ma.masked_where(Q <= 0, omega)
     c6 = ax6.contourf(data.X, data.Y, Q_positive, levels=30, cmap="RdBu_r")
     plt.colorbar(c6, ax=ax6, label="omega (Q>0 only)")
-    ax6.streamplot(data.X, data.Y, data.u, data.v, density=1.2, color="black", linewidth=0.5)
+    ax6.streamplot(
+        data.X, data.Y, data.u, data.v, density=1.2, color="black", linewidth=0.5
+    )
     # Mark circulation center
     circle = plt.Circle(vortex_center, 0.15, fill=False, color="lime", linewidth=2)
     ax6.add_patch(circle)

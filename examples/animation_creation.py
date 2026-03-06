@@ -115,8 +115,10 @@ def create_frame_data_demo(frames):
 
     print("Created FrameData:")
     print(f"  Grid size: {frame_data.nx} x {frame_data.ny}")
-    print(f"  Velocity magnitude range: {frame_data.velocity_mag.min():.4f} - "
-          f"{frame_data.velocity_mag.max():.4f}")
+    print(
+        f"  Velocity magnitude range: {frame_data.velocity_mag.min():.4f} - "
+        f"{frame_data.velocity_mag.max():.4f}"
+    )
 
     return frame_data
 
@@ -139,8 +141,10 @@ def create_animation_frames_demo(frames, dx, dy):
 
     print("Created AnimationFrames:")
     print(f"  Number of frames: {animation_frames.num_frames}")
-    print(f"  Time range: {animation_frames.time_start:.2f} - "
-          f"{animation_frames.time_end:.2f}")
+    print(
+        f"  Time range: {animation_frames.time_start:.2f} - "
+        f"{animation_frames.time_end:.2f}"
+    )
 
     return animation_frames
 
