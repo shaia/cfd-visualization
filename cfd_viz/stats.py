@@ -4,7 +4,7 @@ from typing import Dict, List, Union
 
 from numpy.typing import NDArray
 
-from .backends import get_stats_backend, validate_field_stats
+from .backends import get_stats_backend, validate_field_stats, validate_flow_statistics
 from .common import VTKData
 
 
@@ -50,7 +50,9 @@ def compute_flow_statistics(
 
     backend = get_stats_backend(use_cfd_python)
     p_field = data.get("p")
-    return backend.compute_flow_statistics(data.u, data.v, data.nx, data.ny, p_field)
+    return validate_flow_statistics(
+        backend.compute_flow_statistics(data.u, data.v, data.nx, data.ny, p_field)
+    )
 
 
 def compute_velocity_magnitude(

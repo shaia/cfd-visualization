@@ -7,7 +7,11 @@ Two backends are available:
 
 from ._base import StatsBackend, SystemInfoBackend
 from ._registry import get_info_backend, get_stats_backend
-from ._schema import validate_field_stats, validate_system_info
+from ._schema import (
+    validate_field_stats,
+    validate_flow_statistics,
+    validate_system_info,
+)
 
 __all__ = [
     "StatsBackend",
@@ -15,5 +19,6 @@ __all__ = [
     "get_stats_backend",
     "get_info_backend",
     "validate_field_stats",
+    "validate_flow_statistics",
     "validate_system_info",
 ]
