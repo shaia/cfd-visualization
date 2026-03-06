@@ -20,8 +20,13 @@ def validate_field_stats(result: Dict[str, Any]) -> Dict[str, Any]:
     """Validate and return field stats dict.
 
     Raises:
-        ValueError: If required keys are missing.
+        ValueError: If result is not a dict or required keys are missing.
     """
+    if not isinstance(result, dict):
+        raise ValueError(
+            f"Backend returned invalid field stats: "
+            f"expected a dict, got {type(result).__name__}"
+        )
     missing = FIELD_STATS_REQUIRED_KEYS - result.keys()
     if missing:
         raise ValueError(
