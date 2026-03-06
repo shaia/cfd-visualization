@@ -12,6 +12,11 @@ A Python library for visualizing CFD (Computational Fluid Dynamics) simulation r
 ### Setup
 
 ```bash
+# Create and activate a virtual environment
+python -m venv .venv
+source .venv/bin/activate    # Linux/macOS
+.venv\Scripts\activate       # Windows
+
 # Install package in development mode
 pip install -e .
 
@@ -20,6 +25,16 @@ pip install -e ".[simulation]"
 
 # Or install everything
 pip install -e ".[full]"
+```
+
+#### Using uv (recommended)
+
+```bash
+uv venv .venv
+source .venv/bin/activate    # Linux/macOS
+.venv\Scripts\activate       # Windows
+
+uv pip install -e .
 ```
 
 ## Project Structure
