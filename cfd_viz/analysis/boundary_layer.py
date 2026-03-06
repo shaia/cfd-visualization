@@ -174,7 +174,7 @@ def compute_displacement_thickness(
         return 0.0
 
     integrand = 1.0 - u / u_edge
-    delta_star = np.trapz(integrand, wall_distance)
+    delta_star = np.trapezoid(integrand, wall_distance)
     return float(max(delta_star, 0.0))
 
 
@@ -200,7 +200,7 @@ def compute_momentum_thickness(
 
     u_ratio = u / u_edge
     integrand = u_ratio * (1.0 - u_ratio)
-    theta = np.trapz(integrand, wall_distance)
+    theta = np.trapezoid(integrand, wall_distance)
     return float(max(theta, 0.0))
 
 
