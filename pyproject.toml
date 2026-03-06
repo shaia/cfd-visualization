@@ -122,6 +122,20 @@ indent-style = "space"
 # Unix-style line endings for cross-platform consistency
 line-ending = "lf"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks end-to-end integration tests",
+]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning:matplotlib.*",
+    "ignore::DeprecationWarning:numpy.*",
+    "ignore::matplotlib._api.deprecation.MatplotlibDeprecationWarning",
+    "ignore::pytest.PytestUnraisableExceptionWarning",
+]
+
 [dependency-groups]
 dev = [
     "cfd-python>=0.1.6",

@@ -10,10 +10,25 @@ This module provides a unified interface for reading VTK files
 across all visualization scripts in the project.
 """
 
+import warnings
 from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
+
+# Maps VTK file field names to canonical short names used in VTKData.fields.
+CANONICAL_NAMES: Dict[str, str] = {
+    "pressure": "p",
+}
+
+# Maps alternative user-facing names to canonical names for lookup.
+FIELD_ALIASES: Dict[str, str] = {
+    "pressure": "p",
+    "velocity_x": "u",
+    "velocity_y": "v",
+    "x_velocity": "u",
+    "y_velocity": "v",
+}
 
 
 class VTKData:
@@ -41,6 +56,38 @@ class VTKData:
         self.dx = dx
         self.dy = dy
 
+        # Validate field shapes
+        expected_shape = (ny, nx)
+        for name, field in self.fields.items():
+            if field.shape != expected_shape:
+                raise ValueError(
+                    f"Field '{name}' has shape {field.shape}, "
+                    f"expected {expected_shape} (ny, nx)"
+                )
+
+        # Warn on NaN/inf values
+        for name, field in self.fields.items():
+            if np.any(np.isnan(field)):
+                warnings.warn(
+                    f"Field '{name}' contains NaN values",
+                    UserWarning,
+                    stacklevel=2,
+                )
+            if np.any(np.isinf(field)):
+                warnings.warn(
+                    f"Field '{name}' contains infinite values",
+                    UserWarning,
+                    stacklevel=2,
+                )
+
+    def __repr__(self) -> str:
+        field_names = ", ".join(sorted(self.fields.keys()))
+        return (
+            f"VTKData(nx={self.nx}, ny={self.ny}, "
+            f"dx={self.dx:.6g}, dy={self.dy:.6g}, "
+            f"fields=[{field_names}])"
+        )
+
     @property
     def u(self) -> Optional[NDArray]:
         """X-velocity component."""
@@ -52,12 +99,25 @@ class VTKData:
         return self.fields.get("v")
 
     def __getitem__(self, key: str) -> NDArray:
-        """Access fields by name."""
-        return self.fields[key]
+        """Access fields by name, with alias support."""
+        canonical = FIELD_ALIASES.get(key, key)
+        if canonical in self.fields:
+            return self.fields[canonical]
+        raise KeyError(key)
 
     def get(self, key: str, default: Any = None) -> Any:
-        """Get field with default value."""
-        return self.fields.get(key, default)
+        """Get field with default value, with alias support."""
+        canonical = FIELD_ALIASES.get(key, key)
+        return self.fields.get(canonical, default)
+
+    def __contains__(self, key: str) -> bool:
+        """Support 'key in data' syntax, with alias support."""
+        canonical = FIELD_ALIASES.get(key, key)
+        return canonical in self.fields
+
+    def has_field(self, key: str) -> bool:
+        """Check if a field exists (supports aliases)."""
+        return key in self
 
     def keys(self):
         """Return field names."""
@@ -191,7 +251,8 @@ def read_vtk_file(filename: str) -> Optional[VTKData]:
                 i += 1
 
             if len(values) == nx * ny:
-                fields[field_name] = np.array(values).reshape((ny, nx))
+                canonical = CANONICAL_NAMES.get(field_name, field_name)
+                fields[canonical] = np.array(values).reshape((ny, nx))
             continue
 
         i += 1
