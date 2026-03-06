@@ -14,8 +14,9 @@ A Python library for visualizing CFD (Computational Fluid Dynamics) simulation r
 ```bash
 # Create and activate a virtual environment
 python -m venv .venv
-source .venv/bin/activate    # Linux/macOS
-.venv\Scripts\activate       # Windows
+source .venv/bin/activate          # Linux/macOS / Git Bash
+.venv\Scripts\activate.bat         # Windows CMD
+.venv\Scripts\Activate.ps1         # Windows PowerShell
 
 # Install package in development mode
 pip install -e .
@@ -27,12 +28,13 @@ pip install -e ".[simulation]"
 pip install -e ".[full]"
 ```
 
-#### Using uv (recommended)
+#### Using [uv](https://docs.astral.sh/uv/getting-started/installation/) (recommended)
 
 ```bash
 uv venv .venv
-source .venv/bin/activate    # Linux/macOS
-.venv\Scripts\activate       # Windows
+source .venv/bin/activate          # Linux/macOS / Git Bash
+.venv\Scripts\activate.bat         # Windows CMD
+.venv\Scripts\Activate.ps1         # Windows PowerShell
 
 uv pip install -e .
 ```
