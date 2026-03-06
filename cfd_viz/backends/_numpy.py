@@ -26,8 +26,8 @@ class NumPyStatsBackend(StatsBackend):
         self,
         u: NDArray,
         v: NDArray,
-        nx: int,
-        ny: int,
+        _nx: int,
+        _ny: int,
         p: Optional[NDArray],
     ) -> Dict[str, Dict[str, float]]:
         vel_mag = np.sqrt(u**2 + v**2)
@@ -41,7 +41,7 @@ class NumPyStatsBackend(StatsBackend):
         return result
 
     def compute_velocity_magnitude(
-        self, u: NDArray, v: NDArray, nx: int, ny: int
+        self, u: NDArray, v: NDArray, _nx: int, _ny: int
     ) -> NDArray:
         return np.sqrt(u**2 + v**2)
 
