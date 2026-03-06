@@ -240,8 +240,10 @@ def main():
         return
 
     print(f"\nLoaded data: {data.nx}x{data.ny} grid")
-    print(f"Domain: [{data.x.min():.2f}, {data.x.max():.2f}] x "
-          f"[{data.y.min():.2f}, {data.y.max():.2f}]")
+    print(
+        f"Domain: [{data.x.min():.2f}, {data.x.max():.2f}] x "
+        f"[{data.y.min():.2f}, {data.y.max():.2f}]"
+    )
 
     # Run analyses
     bl = analyze_single_profile(data)

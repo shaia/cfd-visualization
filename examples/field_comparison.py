@@ -82,12 +82,10 @@ def compare_grid_resolutions():
 
     # Create interpolators for coarse data
     interp_u = RegularGridInterpolator(
-        (coarse.y, coarse.x), coarse.u,
-        bounds_error=False, fill_value=0
+        (coarse.y, coarse.x), coarse.u, bounds_error=False, fill_value=0
     )
     interp_v = RegularGridInterpolator(
-        (coarse.y, coarse.x), coarse.v,
-        bounds_error=False, fill_value=0
+        (coarse.y, coarse.x), coarse.v, bounds_error=False, fill_value=0
     )
 
     # Interpolate to fine grid
@@ -139,7 +137,9 @@ def compare_iteration_counts():
         p1=early.get("p") if early.get("p") is not None else np.zeros_like(early.u),
         u2=converged.u,
         v2=converged.v,
-        p2=converged.get("p") if converged.get("p") is not None else np.zeros_like(converged.u),
+        p2=converged.get("p")
+        if converged.get("p") is not None
+        else np.zeros_like(converged.u),
         dx=early.dx,
         dy=early.dy,
     )
@@ -175,12 +175,10 @@ def compute_error_norms_demo():
     from scipy.interpolate import RegularGridInterpolator
 
     interp_u = RegularGridInterpolator(
-        (test.y, test.x), test.u,
-        bounds_error=False, fill_value=0
+        (test.y, test.x), test.u, bounds_error=False, fill_value=0
     )
     interp_v = RegularGridInterpolator(
-        (test.y, test.x), test.v,
-        bounds_error=False, fill_value=0
+        (test.y, test.x), test.v, bounds_error=False, fill_value=0
     )
 
     points = np.array([ref.Y.flatten(), ref.X.flatten()]).T
@@ -203,7 +201,9 @@ def compute_error_norms_demo():
     return ref, vel_ref, vel_test, norms
 
 
-def create_comparison_visualizations(fine, u_coarse, v_coarse, early, converged, ref, vel_ref, vel_test):
+def create_comparison_visualizations(
+    fine, u_coarse, v_coarse, early, converged, ref, vel_ref, vel_test
+):
     """Create visualization of comparisons."""
     print("\n4. Creating Comparison Visualizations")
     print("-" * 40)
@@ -234,8 +234,15 @@ def create_comparison_visualizations(fine, u_coarse, v_coarse, early, converged,
     ax3 = axes[0, 2]
     vel_diff = vel_fine - vel_coarse
     max_diff = max(abs(vel_diff.min()), abs(vel_diff.max()))
-    c3 = ax3.contourf(fine.X, fine.Y, vel_diff, levels=30,
-                      cmap="RdBu_r", vmin=-max_diff, vmax=max_diff)
+    c3 = ax3.contourf(
+        fine.X,
+        fine.Y,
+        vel_diff,
+        levels=30,
+        cmap="RdBu_r",
+        vmin=-max_diff,
+        vmax=max_diff,
+    )
     plt.colorbar(c3, ax=ax3, label="Difference")
     ax3.set_title("Fine - Coarse Difference")
     ax3.set_xlabel("x")
@@ -255,7 +262,9 @@ def create_comparison_visualizations(fine, u_coarse, v_coarse, early, converged,
     # Plot 5: Converged solution
     ax5 = axes[1, 1]
     vel_converged = magnitude(converged.u, converged.v)
-    c5 = ax5.contourf(converged.X, converged.Y, vel_converged, levels=30, cmap="viridis")
+    c5 = ax5.contourf(
+        converged.X, converged.Y, vel_converged, levels=30, cmap="viridis"
+    )
     plt.colorbar(c5, ax=ax5, label="|V|")
     ax5.set_title("Converged (500 steps)")
     ax5.set_xlabel("x")
@@ -266,8 +275,15 @@ def create_comparison_visualizations(fine, u_coarse, v_coarse, early, converged,
     ax6 = axes[1, 2]
     conv_diff = vel_converged - vel_early
     max_conv_diff = max(abs(conv_diff.min()), abs(conv_diff.max()))
-    c6 = ax6.contourf(converged.X, converged.Y, conv_diff, levels=30,
-                      cmap="RdBu_r", vmin=-max_conv_diff, vmax=max_conv_diff)
+    c6 = ax6.contourf(
+        converged.X,
+        converged.Y,
+        conv_diff,
+        levels=30,
+        cmap="RdBu_r",
+        vmin=-max_conv_diff,
+        vmax=max_conv_diff,
+    )
     plt.colorbar(c6, ax=ax6, label="Difference")
     ax6.set_title("Converged - Early Difference")
     ax6.set_xlabel("x")
@@ -301,9 +317,7 @@ def main():
 
     # Create visualizations
     create_comparison_visualizations(
-        fine, u_coarse, v_coarse,
-        early, converged,
-        ref, vel_ref, vel_test
+        fine, u_coarse, v_coarse, early, converged, ref, vel_ref, vel_test
     )
 
     print("\n" + "=" * 40)
