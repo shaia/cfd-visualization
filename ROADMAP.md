@@ -48,27 +48,18 @@ The cfd-python integration had inline `if/else` branching scattered across `stat
 
 ---
 
-## Phase 2: Foundation & Code Quality
+## Phase 2: Foundation & Code Quality - COMPLETE
 
-**Priority:** P0 - Must-have before adding features
-**Target:** v0.2.0
+**Status:** Completed (2026-03-06)
 
-The VTK reader (`cfd_viz/common/vtk_reader.py`) is 240 lines with zero dedicated tests. VTKData accepts any data without validation. The version string is duplicated between `pyproject.toml` and `__init__.py`. These are trust issues for a library used in research.
+The VTK reader had zero dedicated tests and VTKData accepted any data without validation. This phase added validation, field aliases, single-source versioning, and comprehensive test coverage.
 
-### Tasks
-
-- [ ] **2.1 Add pytest configuration** to `pyproject.toml` - testpaths, markers, filterwarnings
-- [ ] **2.2 Write VTK reader tests** - STRUCTURED_POINTS/RECTILINEAR_GRID parsing, malformed files, edge cases (empty fields, single-row grids)
-- [ ] **2.3 Add VTKData validation** - verify field shapes match `(ny, nx)` on construction, warn on NaN/inf, add `__repr__` for debugging
-- [ ] **2.4 Normalize field naming** - add `FIELD_ALIASES` mapping so `data["pressure"]` and `data["p"]` both work; standardize across all modules
-- [ ] **2.5 Single-source version** - use hatchling dynamic version or `importlib.metadata`; remove the duplication
-- [ ] **2.6 Add integration test** - end-to-end: create VTK data in memory, read it, compute vorticity, plot to figure, assert no exceptions
-
-### Success Criteria
-
-- VTK reader has dedicated test coverage
-- VTKData raises `ValueError` for mismatched field shapes
-- Version appears in exactly one source file
+- [x] **2.1 Add pytest configuration** to `pyproject.toml` - testpaths, markers (`slow`, `integration`), filterwarnings
+- [x] **2.2 Write VTK reader tests** - 35 tests covering STRUCTURED_POINTS/RECTILINEAR_GRID parsing, malformed files, edge cases, field aliases
+- [x] **2.3 Add VTKData validation** - field shape validation (`ValueError`), NaN/inf warnings, `__repr__` for debugging
+- [x] **2.4 Normalize field naming** - `FIELD_ALIASES` and `CANONICAL_NAMES` mappings; `data["pressure"]` and `data["p"]` both work; `__contains__`, `has_field()` methods
+- [x] **2.5 Single-source version** - `importlib.metadata` in `__init__.py`; version defined only in `pyproject.toml`
+- [x] **2.6 Add integration test** - 5 end-to-end tests: VTK read → compute → plot, cfd-python conversion, field aliases, version, repr
 
 ---
 
