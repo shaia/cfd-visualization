@@ -17,6 +17,7 @@ Usage:
 
 from __future__ import annotations
 
+import contextvars
 import copy
 import threading
 from contextlib import contextmanager
@@ -73,12 +74,22 @@ class PlotDefaults:
     diverging_colorscale: str = "RdBu"
 
 
-_lock = threading.Lock()
+_lock = threading.RLock()
 _defaults = PlotDefaults()
+_context_override: contextvars.ContextVar[PlotDefaults | None] = contextvars.ContextVar(
+    "_context_override", default=None
+)
 
 
 def get_defaults() -> PlotDefaults:
-    """Return a copy of the current global defaults."""
+    """Return a copy of the current global defaults.
+
+    If called inside a ``plot_context()`` block, returns the
+    context-local overrides instead of the global defaults.
+    """
+    override = _context_override.get()
+    if override is not None:
+        return copy.copy(override)
     with _lock:
         return copy.copy(_defaults)
 
@@ -148,15 +159,22 @@ def plot_context(**kwargs: Any) -> Iterator[PlotDefaults]:
         ...     quick_plot(u, v, nx, ny)  # uses coolwarm
         >>> # defaults restored automatically
     """
-    global _defaults  # noqa: PLW0603
-    with _lock:
-        saved = copy.copy(_defaults)
+    valid_fields = {f.name for f in dc_fields(PlotDefaults)}
+    unknown = set(kwargs) - valid_fields
+    if unknown:
+        raise TypeError(
+            f"Unknown defaults: {', '.join(sorted(unknown))}. "
+            f"Valid fields: {', '.join(sorted(valid_fields))}"
+        )
+    # Start from current effective defaults (context-local or global)
+    base = get_defaults()
+    for key, value in kwargs.items():
+        setattr(base, key, value)
+    token = _context_override.set(base)
     try:
-        set_defaults(**kwargs)
-        yield get_defaults()
+        yield copy.copy(base)
     finally:
-        with _lock:
-            _defaults = saved
+        _context_override.reset(token)
 
 
 def load_config_file(path: str | None = None) -> bool:
