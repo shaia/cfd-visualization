@@ -38,12 +38,8 @@ _VTK_SECTION_HEADERS = frozenset(
     }
 )
 
-# Maps VTK file field names to canonical short names used in VTKData.fields.
-CANONICAL_NAMES: Dict[str, str] = {
-    "pressure": "p",
-}
-
 # Maps alternative user-facing names to canonical names for lookup.
+# Also used at read time to normalize VTK field names to canonical short names.
 FIELD_ALIASES: Dict[str, str] = {
     "pressure": "p",
     "velocity_x": "u",
@@ -275,7 +271,7 @@ def read_vtk_file(filename: str) -> Optional[VTKData]:
                 i += 1
 
             if len(values) == nx * ny:
-                canonical = CANONICAL_NAMES.get(field_name, field_name)
+                canonical = FIELD_ALIASES.get(field_name, field_name)
                 fields[canonical] = np.array(values).reshape((ny, nx))
             continue
 
