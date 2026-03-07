@@ -1,7 +1,5 @@
 """End-to-end integration tests for cfd-visualization pipeline."""
 
-from pathlib import Path
-
 import matplotlib
 
 matplotlib.use("Agg")
@@ -14,19 +12,47 @@ from cfd_viz.convert import from_cfd_python
 from cfd_viz.fields import magnitude, vorticity
 from cfd_viz.plotting import plot_contour_field
 
-SAMPLE_VTK_DIR = Path(__file__).parent.parent / "data" / "vtk_files"
-_sample_file_missing = not (SAMPLE_VTK_DIR / "flow_field_50x50_Re100.vtk").exists()
-_skip_no_samples = pytest.mark.skipif(
-    _sample_file_missing, reason="Sample VTK files not available"
-)
+
+def _write_structured_points(
+    path, nx, ny, vectors=None, scalars=None, origin=(0, 0, 0), spacing=(1, 1, 1)
+):
+    """Write a minimal STRUCTURED_POINTS VTK file."""
+    lines = [
+        "# vtk DataFile Version 3.0",
+        "Test",
+        "ASCII",
+        "DATASET STRUCTURED_POINTS",
+        f"DIMENSIONS {nx} {ny} 1",
+        f"ORIGIN {origin[0]} {origin[1]} {origin[2]}",
+        f"SPACING {spacing[0]} {spacing[1]} {spacing[2]}",
+        "",
+        f"POINT_DATA {nx * ny}",
+    ]
+    if vectors is not None:
+        lines.append("VECTORS velocity float")
+        for u, v in zip(vectors[0].ravel(), vectors[1].ravel()):
+            lines.append(f"{u} {v} 0.0")
+    if scalars is not None:
+        for name, data in scalars.items():
+            lines.append(f"SCALARS {name} float 1")
+            lines.append("LOOKUP_TABLE default")
+            for val in data.ravel():
+                lines.append(str(val))
+    path.write_text("\n".join(lines) + "\n")
 
 
 @pytest.mark.integration
 class TestEndToEnd:
-    @_skip_no_samples
-    def test_vtk_read_compute_plot(self):
+    def test_vtk_read_compute_plot(self, tmp_path):
         """Read VTK file -> compute derived fields -> plot -> no exceptions."""
-        data = read_vtk_file(str(SAMPLE_VTK_DIR / "flow_field_50x50_Re100.vtk"))
+        nx, ny = 50, 50
+        rng = np.random.default_rng(0)
+        u = rng.standard_normal((ny, nx))
+        v = rng.standard_normal((ny, nx))
+        vtk_file = tmp_path / "flow_field.vtk"
+        _write_structured_points(vtk_file, nx=nx, ny=ny, vectors=(u, v))
+
+        data = read_vtk_file(str(vtk_file))
         assert data is not None
 
         speed = magnitude(data.u, data.v)
@@ -55,18 +81,26 @@ class TestEndToEnd:
         plot_contour_field(data.X, data.Y, speed, ax=ax)
         plt.close(fig)
 
-    @_skip_no_samples
-    def test_field_alias_in_pipeline(self):
+    def test_field_alias_in_pipeline(self, tmp_path):
         """Verify aliases work through the full pipeline."""
-        data = read_vtk_file(str(SAMPLE_VTK_DIR / "animated_flow_0050.vtk"))
+        nx, ny = 10, 8
+        u = np.ones((ny, nx))
+        v = np.zeros((ny, nx))
+        p = np.arange(nx * ny, dtype=float).reshape(ny, nx)
+        vtk_file = tmp_path / "animated_flow.vtk"
+        _write_structured_points(
+            vtk_file, nx=nx, ny=ny, vectors=(u, v), scalars={"pressure": p}
+        )
+
+        data = read_vtk_file(str(vtk_file))
         assert data is not None
 
         # "pressure" was normalized to "p" at read time
-        p = data.get("pressure")
-        assert p is not None
+        p_field = data.get("pressure")
+        assert p_field is not None
 
         fig, ax = plt.subplots()
-        plot_contour_field(data.X, data.Y, p, ax=ax)
+        plot_contour_field(data.X, data.Y, p_field, ax=ax)
         plt.close(fig)
 
     def test_version_accessible(self):
@@ -76,10 +110,15 @@ class TestEndToEnd:
         assert isinstance(__version__, str)
         assert len(__version__) > 0
 
-    @_skip_no_samples
-    def test_vtk_data_repr(self):
+    def test_vtk_data_repr(self, tmp_path):
         """VTKData repr should be informative."""
-        data = read_vtk_file(str(SAMPLE_VTK_DIR / "flow_field_50x50_Re100.vtk"))
+        nx, ny = 50, 50
+        u = np.ones((ny, nx))
+        v = np.zeros((ny, nx))
+        vtk_file = tmp_path / "flow_field.vtk"
+        _write_structured_points(vtk_file, nx=nx, ny=ny, vectors=(u, v))
+
+        data = read_vtk_file(str(vtk_file))
         r = repr(data)
         assert "VTKData" in r
         assert "50" in r
