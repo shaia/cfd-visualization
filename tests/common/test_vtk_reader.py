@@ -1,7 +1,5 @@
 """Tests for cfd_viz.common.vtk_reader module."""
 
-from pathlib import Path
-
 import numpy as np
 import pytest
 
@@ -11,13 +9,6 @@ from cfd_viz.common.vtk_reader import (
     read_vtk_file,
     read_vtk_velocity,
 )
-
-SAMPLE_VTK_DIR = Path(__file__).parent.parent.parent / "data" / "vtk_files"
-_sample_file_missing = not (SAMPLE_VTK_DIR / "flow_field_50x50_Re100.vtk").exists()
-_skip_no_samples = pytest.mark.skipif(
-    _sample_file_missing, reason="Sample VTK files not available"
-)
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -163,31 +154,55 @@ class TestVTKDataConstruction:
 
 
 class TestReadVTKFileStructuredPoints:
-    @_skip_no_samples
-    def test_read_real_sample_file(self):
-        vtk_file = SAMPLE_VTK_DIR / "flow_field_50x50_Re100.vtk"
+    def test_read_real_sample_file(self, tmp_path):
+        nx, ny = 50, 50
+        u = np.ones((ny, nx))
+        v = np.zeros((ny, nx))
+        vtk_file = tmp_path / "flow_field_50x50_Re100.vtk"
+        _write_structured_points(vtk_file, nx=nx, ny=ny, vectors=(u, v))
         data = read_vtk_file(str(vtk_file))
         assert data is not None
-        assert data.nx == 50
-        assert data.ny == 50
+        assert data.nx == nx
+        assert data.ny == ny
         assert data.u is not None
         assert data.v is not None
-        assert data.u.shape == (50, 50)
+        assert data.u.shape == (ny, nx)
 
-    @_skip_no_samples
-    def test_real_file_with_scalars(self):
-        vtk_file = SAMPLE_VTK_DIR / "animated_flow_0050.vtk"
+    def test_real_file_with_scalars(self, tmp_path):
+        nx, ny = 10, 8
+        u = np.ones((ny, nx))
+        v = np.zeros((ny, nx))
+        p = np.arange(nx * ny, dtype=float).reshape(ny, nx)
+        vtk_file = tmp_path / "animated_flow_0050.vtk"
+        _write_structured_points(
+            vtk_file,
+            nx=nx,
+            ny=ny,
+            vectors=(u, v),
+            scalars={"pressure": p},
+        )
         data = read_vtk_file(str(vtk_file))
         assert data is not None
         # "pressure" should be normalized to "p"
         assert "p" in data
         assert data["p"].shape == (data.ny, data.nx)
 
-    @_skip_no_samples
-    def test_origin_and_spacing(self):
-        vtk_file = SAMPLE_VTK_DIR / "flow_field_50x50_Re100.vtk"
+    def test_origin_and_spacing(self, tmp_path):
+        nx, ny = 50, 50
+        dx_expected = 0.020408
+        u = np.ones((ny, nx))
+        v = np.zeros((ny, nx))
+        vtk_file = tmp_path / "flow_field_50x50_Re100.vtk"
+        _write_structured_points(
+            vtk_file,
+            nx=nx,
+            ny=ny,
+            vectors=(u, v),
+            origin=(0.0, 0.0, 0.0),
+            spacing=(dx_expected, dx_expected, 1.0),
+        )
         data = read_vtk_file(str(vtk_file))
-        assert data.dx == pytest.approx(0.020408, rel=1e-3)
+        assert data.dx == pytest.approx(dx_expected, rel=1e-3)
         assert data.x[0] == pytest.approx(0.0)
 
     def test_synthetic_minimal(self, tmp_path):
@@ -368,14 +383,17 @@ class TestReadVTKFileMalformed:
 
 
 class TestReadVTKVelocity:
-    @_skip_no_samples
-    def test_returns_tuple(self):
-        vtk_file = SAMPLE_VTK_DIR / "flow_field_50x50_Re100.vtk"
+    def test_returns_tuple(self, tmp_path):
+        nx, ny = 50, 50
+        u_in = np.ones((ny, nx))
+        v_in = np.zeros((ny, nx))
+        vtk_file = tmp_path / "flow_field.vtk"
+        _write_structured_points(vtk_file, nx=nx, ny=ny, vectors=(u_in, v_in))
         result = read_vtk_velocity(str(vtk_file))
         X, Y, u, v = result
         assert X is not None
-        assert X.shape == (50, 50)
-        assert u.shape == (50, 50)
+        assert X.shape == (ny, nx)
+        assert u.shape == (ny, nx)
 
     def test_file_not_found_returns_nones(self):
         result = read_vtk_velocity("/nonexistent/file.vtk")
