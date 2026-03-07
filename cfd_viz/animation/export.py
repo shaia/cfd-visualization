@@ -284,7 +284,9 @@ def create_comprehensive_frame_figure(
     axes[4].set_aspect("equal")
 
     # Combined analysis
-    axes[5].contourf(X, Y, velocity_mag, levels=20, cmap=velocity_cmap, alpha=0.8)
+    axes[5].contourf(
+        X, Y, velocity_mag, levels=defaults.levels, cmap=velocity_cmap, alpha=0.8
+    )
     axes[5].contour(X, Y, p, levels=6, colors="white", linewidths=1.5)
     if np.any(vorticity != 0):
         vort_threshold = np.percentile(np.abs(vorticity), 85)
