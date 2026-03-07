@@ -16,6 +16,28 @@ from typing import Any, Dict, Optional, Tuple
 import numpy as np
 from numpy.typing import NDArray
 
+# VTK section headers that signal the end of a data block.
+_VTK_SECTION_HEADERS = frozenset(
+    {
+        "SCALARS",
+        "VECTORS",
+        "NORMALS",
+        "TENSORS",
+        "TEXTURE_COORDINATES",
+        "FIELD",
+        "LOOKUP_TABLE",
+        "POINT_DATA",
+        "CELL_DATA",
+        "DATASET",
+        "DIMENSIONS",
+        "ORIGIN",
+        "SPACING",
+        "X_COORDINATES",
+        "Y_COORDINATES",
+        "Z_COORDINATES",
+    }
+)
+
 # Maps VTK file field names to canonical short names used in VTKData.fields.
 CANONICAL_NAMES: Dict[str, str] = {
     "pressure": "p",
@@ -242,7 +264,7 @@ def read_vtk_file(filename: str) -> Optional[VTKData]:
                 if not line_content:
                     i += 1
                     continue
-                if line_content.split()[0].isalpha():
+                if line_content.split()[0] in _VTK_SECTION_HEADERS:
                     break
                 try:
                     values.extend([float(x) for x in line_content.split()])
