@@ -12,6 +12,8 @@ import plotly.graph_objects as go
 import plotly.subplots as sp
 from numpy.typing import NDArray
 
+from cfd_viz.defaults import UNSET, get_defaults, resolve
+
 
 @dataclass
 class InteractiveFrameData:
@@ -137,7 +139,7 @@ def create_heatmap_figure(
     y: NDArray,
     field: NDArray,
     title: str = "Field",
-    colorscale: str = "Viridis",
+    colorscale: str = UNSET,
     height: int = 500,
     width: int = 700,
 ) -> go.Figure:
@@ -155,6 +157,8 @@ def create_heatmap_figure(
     Returns:
         Plotly Figure object.
     """
+    colorscale = resolve(colorscale, "colorscale")
+
     fig = go.Figure(
         data=go.Heatmap(
             z=field,
@@ -182,7 +186,7 @@ def create_contour_figure(
     y: NDArray,
     field: NDArray,
     title: str = "Contour",
-    colorscale: str = "Viridis",
+    colorscale: str = UNSET,
     ncontours: int = 20,
     height: int = 500,
     width: int = 700,
@@ -202,6 +206,8 @@ def create_contour_figure(
     Returns:
         Plotly Figure object.
     """
+    colorscale = resolve(colorscale, "colorscale")
+
     fig = go.Figure(
         data=go.Contour(
             z=field,
@@ -232,7 +238,7 @@ def create_vector_figure(
     v: NDArray,
     subsample: int = 5,
     title: str = "Vector Field",
-    colorscale: str = "Viridis",
+    colorscale: str = UNSET,
     height: int = 500,
     width: int = 700,
 ) -> go.Figure:
@@ -252,6 +258,8 @@ def create_vector_figure(
     Returns:
         Plotly Figure object.
     """
+    colorscale = resolve(colorscale, "colorscale")
+
     X, Y = np.meshgrid(x, y)
     X_sub = X[::subsample, ::subsample]
     Y_sub = Y[::subsample, ::subsample]
@@ -318,7 +326,7 @@ def create_surface_figure(
     y: NDArray,
     field: NDArray,
     title: str = "3D Surface",
-    colorscale: str = "Viridis",
+    colorscale: str = UNSET,
     height: int = 600,
     width: int = 800,
 ) -> go.Figure:
@@ -336,6 +344,8 @@ def create_surface_figure(
     Returns:
         Plotly Figure object.
     """
+    colorscale = resolve(colorscale, "colorscale")
+
     fig = go.Figure(
         data=go.Surface(
             z=field,
@@ -533,6 +543,8 @@ def create_dashboard_figure(
     Returns:
         Plotly Figure object with 6 panels.
     """
+    defaults = get_defaults()
+
     x, y = frame.x, frame.y
     u = frame.fields.get("u", np.zeros((len(y), len(x))))
     v = frame.fields.get("v", np.zeros((len(y), len(x))))
@@ -562,21 +574,29 @@ def create_dashboard_figure(
 
     # Row 1: Velocity magnitude
     fig.add_trace(
-        go.Heatmap(z=vel_mag, x=x, y=y, colorscale="Viridis", showscale=True),
+        go.Heatmap(z=vel_mag, x=x, y=y, colorscale=defaults.colorscale, showscale=True),
         row=1,
         col=1,
     )
 
     # Row 1: Pressure
     fig.add_trace(
-        go.Heatmap(z=p, x=x, y=y, colorscale="RdBu", showscale=True),
+        go.Heatmap(
+            z=p, x=x, y=y, colorscale=defaults.diverging_colorscale, showscale=True
+        ),
         row=1,
         col=2,
     )
 
     # Row 1: Vorticity
     fig.add_trace(
-        go.Heatmap(z=vorticity, x=x, y=y, colorscale="RdBu", showscale=True),
+        go.Heatmap(
+            z=vorticity,
+            x=x,
+            y=y,
+            colorscale=defaults.diverging_colorscale,
+            showscale=True,
+        ),
         row=1,
         col=3,
     )
@@ -596,7 +616,7 @@ def create_dashboard_figure(
             marker=dict(
                 size=8,
                 color=speed_sub.flatten(),
-                colorscale="Viridis",
+                colorscale=defaults.colorscale,
                 showscale=False,
             ),
         ),
@@ -613,7 +633,9 @@ def create_dashboard_figure(
 
     # Row 2: 3D Surface
     fig.add_trace(
-        go.Surface(z=vel_mag, x=x, y=y, colorscale="Viridis", showscale=False),
+        go.Surface(
+            z=vel_mag, x=x, y=y, colorscale=defaults.colorscale, showscale=False
+        ),
         row=2,
         col=3,
     )
@@ -647,6 +669,8 @@ def create_animated_dashboard(
     """
     if not frames.frames:
         raise ValueError("No frames provided")
+
+    defaults = get_defaults()
 
     # Create subplot structure
     fig = sp.make_subplots(
@@ -693,15 +717,27 @@ def create_animated_dashboard(
 
         # 1. Velocity Magnitude
         frame_data.append(
-            go.Heatmap(z=vel_mag, x=x, y=y, colorscale="Viridis", showscale=False)
+            go.Heatmap(
+                z=vel_mag, x=x, y=y, colorscale=defaults.colorscale, showscale=False
+            )
         )
 
         # 2. Pressure
-        frame_data.append(go.Heatmap(z=p, x=x, y=y, colorscale="RdBu", showscale=False))
+        frame_data.append(
+            go.Heatmap(
+                z=p, x=x, y=y, colorscale=defaults.diverging_colorscale, showscale=False
+            )
+        )
 
         # 3. Vorticity
         frame_data.append(
-            go.Heatmap(z=vorticity, x=x, y=y, colorscale="RdBu", showscale=False)
+            go.Heatmap(
+                z=vorticity,
+                x=x,
+                y=y,
+                colorscale=defaults.diverging_colorscale,
+                showscale=False,
+            )
         )
 
         # 4. Vector Field
@@ -718,7 +754,7 @@ def create_animated_dashboard(
                 marker=dict(
                     size=8,
                     color=speed_sub.flatten(),
-                    colorscale="Viridis",
+                    colorscale=defaults.colorscale,
                     showscale=False,
                 ),
                 showlegend=False,
@@ -735,7 +771,7 @@ def create_animated_dashboard(
                 marker=dict(
                     size=2,
                     color=vel_mag.flatten(),
-                    colorscale="Viridis",
+                    colorscale=defaults.colorscale,
                     showscale=False,
                 ),
                 showlegend=False,
@@ -750,7 +786,12 @@ def create_animated_dashboard(
         # 7. Combined
         frame_data.append(
             go.Heatmap(
-                z=vel_mag, x=x, y=y, colorscale="Viridis", opacity=0.7, showscale=False
+                z=vel_mag,
+                x=x,
+                y=y,
+                colorscale=defaults.colorscale,
+                opacity=0.7,
+                showscale=False,
             )
         )
 
@@ -766,7 +807,9 @@ def create_animated_dashboard(
 
         # 9. 3D Surface
         frame_data.append(
-            go.Surface(z=vel_mag, x=x, y=y, colorscale="Viridis", showscale=False)
+            go.Surface(
+                z=vel_mag, x=x, y=y, colorscale=defaults.colorscale, showscale=False
+            )
         )
 
         plotly_frames.append(go.Frame(data=frame_data, name=str(frame_idx)))
@@ -784,9 +827,19 @@ def create_animated_dashboard(
     T = first_frame.fields.get("T", np.ones_like(X) * 300)
 
     # Row 1
-    fig.add_trace(go.Heatmap(z=vel_mag, x=x, y=y, colorscale="Viridis"), row=1, col=1)
-    fig.add_trace(go.Heatmap(z=p, x=x, y=y, colorscale="RdBu"), row=1, col=2)
-    fig.add_trace(go.Heatmap(z=vorticity, x=x, y=y, colorscale="RdBu"), row=1, col=3)
+    fig.add_trace(
+        go.Heatmap(z=vel_mag, x=x, y=y, colorscale=defaults.colorscale), row=1, col=1
+    )
+    fig.add_trace(
+        go.Heatmap(z=p, x=x, y=y, colorscale=defaults.diverging_colorscale),
+        row=1,
+        col=2,
+    )
+    fig.add_trace(
+        go.Heatmap(z=vorticity, x=x, y=y, colorscale=defaults.diverging_colorscale),
+        row=1,
+        col=3,
+    )
 
     # Row 2
     skip = max(1, min(len(x), len(y)) // 10)
@@ -799,7 +852,9 @@ def create_animated_dashboard(
             x=X_sub.flatten(),
             y=Y_sub.flatten(),
             mode="markers",
-            marker=dict(size=8, color=speed_sub.flatten(), colorscale="Viridis"),
+            marker=dict(
+                size=8, color=speed_sub.flatten(), colorscale=defaults.colorscale
+            ),
         ),
         row=2,
         col=1,
@@ -811,7 +866,9 @@ def create_animated_dashboard(
             y=Y.flatten(),
             z=vel_mag.flatten(),
             mode="markers",
-            marker=dict(size=2, color=vel_mag.flatten(), colorscale="Viridis"),
+            marker=dict(
+                size=2, color=vel_mag.flatten(), colorscale=defaults.colorscale
+            ),
         ),
         row=2,
         col=2,
@@ -821,7 +878,7 @@ def create_animated_dashboard(
 
     # Row 3
     fig.add_trace(
-        go.Heatmap(z=vel_mag, x=x, y=y, colorscale="Viridis", opacity=0.7),
+        go.Heatmap(z=vel_mag, x=x, y=y, colorscale=defaults.colorscale, opacity=0.7),
         row=3,
         col=1,
     )
@@ -833,7 +890,7 @@ def create_animated_dashboard(
     )
 
     fig.add_trace(
-        go.Surface(z=vel_mag, x=x, y=y, colorscale="Viridis"),
+        go.Surface(z=vel_mag, x=x, y=y, colorscale=defaults.colorscale),
         row=3,
         col=3,
     )
