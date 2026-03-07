@@ -63,26 +63,15 @@ The VTK reader had zero dedicated tests and VTKData accepted any data without va
 
 ---
 
-## Phase 3: Global Configuration System
+## Phase 3: Global Configuration System - COMPLETE
 
-**Priority:** P1 - Biggest daily-use friction point
-**Target:** v0.2.0
+**Status:** Completed (2026-03-07)
 
-Every plotting function has hardcoded defaults (`cmap="viridis"`, `figsize=(8,6)`, `dpi=150`). A researcher who prefers a specific colormap for publications must pass it to every single call. There are 18+ hardcoded colormap strings across plotting modules.
-
-### Tasks
-
-- [ ] **3.1 Create `PlotDefaults` dataclass** - `cmap`, `diverging_cmap`, `figsize`, `dpi`, `levels`, `font_size`. Provide `get_defaults()` / `set_defaults()` functions
-- [ ] **3.2 Add context manager** - `with cfd_viz.plot_context(cmap="coolwarm", dpi=300):` for temporary overrides
-- [ ] **3.3 Support config file** - read `[tool.cfd_viz]` from pyproject.toml or standalone `cfd_viz.toml` for project-level defaults
-- [ ] **3.4 Migrate plotting functions** - replace hardcoded defaults with `get_defaults()` calls across all plotting modules
-- [ ] **3.5 Add configuration tests** - default override, context manager nesting, config file loading
-
-### Success Criteria
-
-- `cfd_viz.set_defaults(cmap="coolwarm")` changes all subsequent plots
-- Context manager correctly restores previous defaults
-- All existing examples and tests pass without changes
+- [x] **3.1 Create `PlotDefaults` dataclass** (`cfd_viz/defaults.py`) - `cmap`, `diverging_cmap`, `sequential_cmap`, `figsize`, `dpi`, `levels`, `font_size`, `colorscale`, `diverging_colorscale`. Thread-safe via `threading.RLock`
+- [x] **3.2 Add context manager** - `plot_context()` using `contextvars.ContextVar` for thread-safe and async-safe temporary overrides with automatic restore
+- [x] **3.3 Support config file** - reads `cfd_viz.toml` or `pyproject.toml` `[tool.cfd_viz.defaults]`; `tomli` conditional dependency for Python <3.11
+- [x] **3.4 Migrate plotting functions** - `UNSET` sentinel + `resolve()` pattern replaces hardcoded defaults across plotting and animation modules
+- [x] **3.5 Add configuration tests** - 36 tests covering defaults, context manager nesting, config file loading, and plotting integration
 
 ---
 
