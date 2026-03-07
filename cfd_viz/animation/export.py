@@ -60,7 +60,9 @@ def export_frame_to_image(
 
     # Panel 1: Velocity magnitude contours
     if velocity_mag is not None:
-        im1 = axes[0].contourf(X, Y, velocity_mag, levels=20, cmap=defaults.cmap)
+        im1 = axes[0].contourf(
+            X, Y, velocity_mag, levels=defaults.levels, cmap=defaults.cmap
+        )
         axes[0].set_title("Velocity Magnitude")
         axes[0].axis("equal")
         plt.colorbar(im1, ax=axes[0])
@@ -103,7 +105,9 @@ def export_frame_to_image(
         except ValueError:
             # Streamplot can fail with certain grid configurations
             if velocity_mag is not None:
-                axes[2].contourf(X, Y, velocity_mag, levels=20, cmap=defaults.cmap)
+                axes[2].contourf(
+                    X, Y, velocity_mag, levels=defaults.levels, cmap=defaults.cmap
+                )
         axes[2].set_title("Flow Streamlines")
         axes[2].axis("equal")
     else:
@@ -111,13 +115,15 @@ def export_frame_to_image(
 
     # Panel 4: Pressure or combined view
     if include_pressure and p is not None:
-        im4 = axes[3].contourf(X, Y, p, levels=20, cmap=defaults.diverging_cmap)
+        im4 = axes[3].contourf(
+            X, Y, p, levels=defaults.levels, cmap=defaults.diverging_cmap
+        )
         axes[3].set_title("Pressure Field")
         axes[3].axis("equal")
         plt.colorbar(im4, ax=axes[3])
     elif velocity_mag is not None and u is not None and v is not None:
         im4 = axes[3].contourf(
-            X, Y, velocity_mag, levels=20, cmap=defaults.cmap, alpha=0.7
+            X, Y, velocity_mag, levels=defaults.levels, cmap=defaults.cmap, alpha=0.7
         )
         axes[3].streamplot(X, Y, u, v, color="white", density=1, linewidth=0.8)
         axes[3].set_title("Combined: Magnitude + Streamlines")
@@ -219,7 +225,9 @@ def create_comprehensive_frame_figure(
     velocity_cmap = create_velocity_colormap()
 
     # Velocity magnitude
-    im0 = axes[0].contourf(X, Y, velocity_mag, levels=20, cmap=velocity_cmap)
+    im0 = axes[0].contourf(
+        X, Y, velocity_mag, levels=defaults.levels, cmap=velocity_cmap
+    )
     axes[0].set_title("Velocity Magnitude", fontweight="bold")
     axes[0].set_xlabel("X")
     axes[0].set_ylabel("Y")
@@ -227,7 +235,9 @@ def create_comprehensive_frame_figure(
     plt.colorbar(im0, ax=axes[0])
 
     # Pressure
-    im1 = axes[1].contourf(X, Y, p, levels=20, cmap=defaults.diverging_cmap)
+    im1 = axes[1].contourf(
+        X, Y, p, levels=defaults.levels, cmap=defaults.diverging_cmap
+    )
     contours = axes[1].contour(X, Y, p, levels=8, colors="black", linewidths=0.5)
     axes[1].clabel(contours, inline=True, fontsize=8)
     axes[1].set_title("Pressure Field", fontweight="bold")
@@ -237,7 +247,7 @@ def create_comprehensive_frame_figure(
     plt.colorbar(im1, ax=axes[1])
 
     # Vorticity
-    im2 = axes[2].contourf(X, Y, vorticity, levels=20, cmap="seismic")
+    im2 = axes[2].contourf(X, Y, vorticity, levels=defaults.levels, cmap="seismic")
     axes[2].set_title("Vorticity", fontweight="bold")
     axes[2].set_xlabel("X")
     axes[2].set_ylabel("Y")
