@@ -19,6 +19,9 @@ interactive = ["plotly", "dash"]
 simulation = ["cfd-python>=0.1.6"]
 full = ["plotly", "dash", "cfd-python>=0.1.6"]
 
+[project.scripts]
+cfd-viz = "cfd_viz.cli:main"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
