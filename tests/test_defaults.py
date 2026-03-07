@@ -1,6 +1,11 @@
 """Tests for cfd_viz.defaults module."""
 
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
 import pytest
+
+matplotlib.use("Agg")
 
 from cfd_viz.defaults import (
     UNSET,
@@ -226,3 +231,65 @@ class TestLoadConfigFile:
         monkeypatch.chdir(tmp_path)
         (tmp_path / "pyproject.toml").write_text("[tool.other]\nfoo = 1\n")
         assert load_config_file() is False
+
+
+class TestPlottingIntegration:
+    """Integration tests: plotting functions respect global defaults."""
+
+    def _make_grid(self):
+        x = np.linspace(0, 1, 10)
+        y = np.linspace(0, 1, 10)
+        X, Y = np.meshgrid(x, y)
+        field = np.sin(X) * np.cos(Y)
+        return X, Y, field
+
+    def test_contour_uses_global_cmap(self):
+        from cfd_viz.plotting.fields import plot_contour_field
+
+        X, Y, field = self._make_grid()
+        set_defaults(cmap="hot")
+        ax = plot_contour_field(X, Y, field)
+        # contourf stores cmap on the QuadContourSet
+        cmap_name = ax.collections[0].get_cmap().name
+        assert cmap_name == "hot"
+        plt.close("all")
+
+    def test_explicit_cmap_overrides_global(self):
+        from cfd_viz.plotting.fields import plot_contour_field
+
+        X, Y, field = self._make_grid()
+        set_defaults(cmap="hot")
+        ax = plot_contour_field(X, Y, field, cmap="coolwarm")
+        cmap_name = ax.collections[0].get_cmap().name
+        assert cmap_name == "coolwarm"
+        plt.close("all")
+
+    def test_plot_context_affects_plotting(self):
+        from cfd_viz.plotting.fields import plot_contour_field
+
+        X, Y, field = self._make_grid()
+        with plot_context(cmap="magma"):
+            ax = plot_contour_field(X, Y, field)
+            cmap_name = ax.collections[0].get_cmap().name
+            assert cmap_name == "magma"
+        plt.close("all")
+
+    def test_vorticity_uses_diverging_cmap(self):
+        from cfd_viz.plotting.fields import plot_vorticity_field
+
+        X, Y, field = self._make_grid()
+        set_defaults(diverging_cmap="PuOr")
+        ax = plot_vorticity_field(X, Y, field)
+        cmap_name = ax.collections[0].get_cmap().name
+        assert cmap_name == "PuOr"
+        plt.close("all")
+
+    def test_pressure_uses_sequential_cmap(self):
+        from cfd_viz.plotting.fields import plot_pressure_field
+
+        X, Y, field = self._make_grid()
+        set_defaults(sequential_cmap="inferno")
+        ax = plot_pressure_field(X, Y, field)
+        cmap_name = ax.collections[0].get_cmap().name
+        assert cmap_name == "inferno"
+        plt.close("all")
