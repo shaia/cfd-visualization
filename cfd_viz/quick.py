@@ -10,6 +10,7 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 from .convert import from_cfd_python
+from .defaults import UNSET, resolve
 from .fields import magnitude, vorticity
 from .plotting import plot_contour_field
 
@@ -28,7 +29,7 @@ def quick_plot(
     ymin: float = 0.0,
     ymax: float = 1.0,
     ax: Optional[Axes] = None,
-    figsize: tuple[float, float] = (8, 6),
+    figsize: tuple[float, float] = UNSET,
     **kwargs: Any,
 ) -> tuple[Figure, Axes]:
     """Quick visualization of cfd-python simulation results.
@@ -58,6 +59,8 @@ def quick_plot(
         >>> fig, ax = quick_plot(result['u'], result['v'], result['nx'], result['ny'])
         >>> plt.show()
     """
+    figsize = resolve(figsize, "figsize")
+
     data = from_cfd_python(
         u, v, nx=nx, ny=ny, p=p, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax
     )
@@ -149,7 +152,7 @@ def quick_plot_data(
     data: Any,
     field: FieldType = "velocity_magnitude",
     ax: Optional[Axes] = None,
-    figsize: tuple[float, float] = (8, 6),
+    figsize: tuple[float, float] = UNSET,
     **kwargs: Any,
 ) -> tuple[Figure, Axes]:
     """Quick visualization of VTKData object.
@@ -170,6 +173,8 @@ def quick_plot_data(
         >>> fig, ax = quick_plot_data(data, field="velocity_magnitude")
         >>> plt.show()
     """
+    figsize = resolve(figsize, "figsize")
+
     if ax is None:
         fig, ax = plt.subplots(figsize=figsize)
     else:

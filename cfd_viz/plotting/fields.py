@@ -12,14 +12,16 @@ import numpy as np
 from matplotlib.axes import Axes
 from numpy.typing import NDArray
 
+from cfd_viz.defaults import UNSET, resolve
+
 
 def plot_contour_field(
     X: NDArray,
     Y: NDArray,
     field: NDArray,
     ax: Optional[Axes] = None,
-    levels: int = 20,
-    cmap: str = "viridis",
+    levels: int = UNSET,
+    cmap: str = UNSET,
     colorbar: bool = True,
     colorbar_label: str = "",
     title: str = "",
@@ -48,6 +50,9 @@ def plot_contour_field(
     Returns:
         The matplotlib axes object.
     """
+    levels = resolve(levels, "levels")
+    cmap = resolve(cmap, "cmap")
+
     if ax is None:
         _, ax = plt.subplots()
 
@@ -71,8 +76,8 @@ def plot_velocity_field(
     u: NDArray,
     v: NDArray,
     ax: Optional[Axes] = None,
-    levels: int = 20,
-    cmap: str = "viridis",
+    levels: int = UNSET,
+    cmap: str = UNSET,
     colorbar: bool = True,
     title: str = "Velocity Magnitude",
     **kwargs,
@@ -94,6 +99,9 @@ def plot_velocity_field(
     Returns:
         The matplotlib axes object.
     """
+    levels = resolve(levels, "levels")
+    cmap = resolve(cmap, "cmap")
+
     velocity_mag = np.sqrt(u**2 + v**2)
     return plot_contour_field(
         X,
@@ -114,8 +122,8 @@ def plot_pressure_field(
     Y: NDArray,
     pressure: NDArray,
     ax: Optional[Axes] = None,
-    levels: int = 20,
-    cmap: str = "plasma",
+    levels: int = UNSET,
+    cmap: str = UNSET,
     colorbar: bool = True,
     title: str = "Pressure Field",
     **kwargs,
@@ -136,6 +144,9 @@ def plot_pressure_field(
     Returns:
         The matplotlib axes object.
     """
+    levels = resolve(levels, "levels")
+    cmap = resolve(cmap, "sequential_cmap")
+
     return plot_contour_field(
         X,
         Y,
@@ -155,8 +166,8 @@ def plot_vorticity_field(
     Y: NDArray,
     omega: NDArray,
     ax: Optional[Axes] = None,
-    levels: int = 20,
-    cmap: str = "RdBu_r",
+    levels: int = UNSET,
+    cmap: str = UNSET,
     colorbar: bool = True,
     title: str = "Vorticity Field",
     symmetric: bool = True,
@@ -179,6 +190,9 @@ def plot_vorticity_field(
     Returns:
         The matplotlib axes object.
     """
+    levels = resolve(levels, "levels")
+    cmap = resolve(cmap, "diverging_cmap")
+
     if ax is None:
         _, ax = plt.subplots()
 
@@ -314,8 +328,8 @@ def plot_vorticity_with_streamlines(
     u: NDArray,
     v: NDArray,
     ax: Optional[Axes] = None,
-    vort_levels: int = 20,
-    vort_cmap: str = "RdBu_r",
+    vort_levels: int = UNSET,
+    vort_cmap: str = UNSET,
     vort_alpha: float = 0.8,
     stream_density: float = 1.5,
     stream_color: str = "black",
@@ -344,6 +358,9 @@ def plot_vorticity_with_streamlines(
     Returns:
         The matplotlib axes object.
     """
+    vort_levels = resolve(vort_levels, "levels")
+    vort_cmap = resolve(vort_cmap, "diverging_cmap")
+
     if ax is None:
         _, ax = plt.subplots()
 
