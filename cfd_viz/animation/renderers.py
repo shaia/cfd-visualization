@@ -14,6 +14,8 @@ from matplotlib.axes import Axes
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.figure import Figure
 
+from cfd_viz.defaults import UNSET, get_defaults, resolve
+
 from .frames import AnimationFrames, FrameData, ParticleTraces
 
 # =============================================================================
@@ -50,8 +52,8 @@ def render_contour_frame(
     ax: Axes,
     frame: FrameData,
     field_name: str = "velocity_mag",
-    levels: int = 20,
-    cmap: str = "viridis",
+    levels: int = UNSET,
+    cmap: str = UNSET,
     vmin: Optional[float] = None,
     vmax: Optional[float] = None,
     colorbar: bool = True,
@@ -70,6 +72,8 @@ def render_contour_frame(
         colorbar: Whether to add colorbar.
         title: Plot title.
     """
+    levels = resolve(levels, "levels")
+    cmap = resolve(cmap, "cmap")
     ax.clear()
 
     field = frame.fields.get(field_name)
@@ -107,7 +111,7 @@ def render_vector_frame(
     frame: FrameData,
     subsample: int = 5,
     color_by: str = "velocity_mag",
-    cmap: str = "viridis",
+    cmap: str = UNSET,
     scale: float = 15,
     width: float = 0.003,
     title: Optional[str] = None,
@@ -124,6 +128,7 @@ def render_vector_frame(
         width: Arrow width.
         title: Plot title.
     """
+    cmap = resolve(cmap, "cmap")
     ax.clear()
 
     u = frame.fields.get("u")
@@ -170,7 +175,7 @@ def render_streamline_frame(
     ax: Axes,
     frame: FrameData,
     color_by: str = "velocity_mag",
-    cmap: str = "viridis",
+    cmap: str = UNSET,
     density: float = 2.0,
     linewidth: float = 1.0,
     title: Optional[str] = None,
@@ -186,6 +191,7 @@ def render_streamline_frame(
         linewidth: Line width.
         title: Plot title.
     """
+    cmap = resolve(cmap, "cmap")
     ax.clear()
 
     u = frame.fields.get("u")
@@ -229,9 +235,9 @@ def render_streamline_frame(
 def create_field_animation(
     animation_frames: AnimationFrames,
     field_name: str = "velocity_mag",
-    figsize: Tuple[int, int] = (12, 6),
-    cmap: str = "viridis",
-    levels: int = 20,
+    figsize: Tuple[int, int] = UNSET,
+    cmap: str = UNSET,
+    levels: int = UNSET,
     interval: int = 200,
     title_prefix: str = "CFD Simulation",
 ) -> Tuple[Figure, animation.FuncAnimation]:
@@ -249,6 +255,9 @@ def create_field_animation(
     Returns:
         Tuple of (figure, animation) objects.
     """
+    figsize = resolve(figsize, "figsize")
+    cmap = resolve(cmap, "cmap")
+    levels = resolve(levels, "levels")
     if not animation_frames.frames:
         raise ValueError("No frames to animate")
 
@@ -315,8 +324,8 @@ def create_field_animation(
 
 def create_streamline_animation(
     animation_frames: AnimationFrames,
-    figsize: Tuple[int, int] = (12, 6),
-    cmap: str = "viridis",
+    figsize: Tuple[int, int] = UNSET,
+    cmap: str = UNSET,
     density: float = 1.5,
     interval: int = 200,
     title_prefix: str = "CFD Streamlines",
@@ -334,6 +343,8 @@ def create_streamline_animation(
     Returns:
         Tuple of (figure, animation) objects.
     """
+    figsize = resolve(figsize, "figsize")
+    cmap = resolve(cmap, "cmap")
     if not animation_frames.frames:
         raise ValueError("No frames to animate")
 
@@ -394,8 +405,8 @@ def create_streamline_animation(
 
 def create_vector_animation(
     animation_frames: AnimationFrames,
-    figsize: Tuple[int, int] = (12, 6),
-    cmap: str = "viridis",
+    figsize: Tuple[int, int] = UNSET,
+    cmap: str = UNSET,
     subsample: int = 5,
     scale: float = 15,
     interval: int = 200,
@@ -415,6 +426,8 @@ def create_vector_animation(
     Returns:
         Tuple of (figure, animation) objects.
     """
+    figsize = resolve(figsize, "figsize")
+    cmap = resolve(cmap, "cmap")
     if not animation_frames.frames:
         raise ValueError("No frames to animate")
 
@@ -470,7 +483,7 @@ def create_vector_animation(
 
 def create_multi_panel_animation(
     animation_frames: AnimationFrames,
-    figsize: Tuple[int, int] = (18, 10),
+    figsize: Tuple[int, int] = UNSET,
     interval: int = 500,
     title: str = "CFD Flow Analysis Dashboard",
 ) -> Tuple[Figure, animation.FuncAnimation]:
@@ -489,6 +502,8 @@ def create_multi_panel_animation(
     Returns:
         Tuple of (figure, animation) objects.
     """
+    figsize = resolve(figsize, "figsize")
+    defaults = get_defaults()
     if not animation_frames.frames:
         raise ValueError("No frames to animate")
 
@@ -500,8 +515,6 @@ def create_multi_panel_animation(
     vel_range = animation_frames.get_field_range("velocity_mag")
     p_range = animation_frames.get_field_range("p")
     vort_range = animation_frames.get_field_range("vorticity")
-
-    velocity_cmap = create_velocity_colormap()
 
     first_frame = animation_frames.frames[0]
     X, Y = first_frame.X, first_frame.Y
@@ -525,7 +538,7 @@ def create_multi_panel_animation(
             aspect="auto",
             vmin=vel_range[0],
             vmax=vel_range[1],
-            cmap=velocity_cmap,
+            cmap=defaults.cmap,
         )
         axes[0].set_title("Velocity Magnitude", fontweight="bold")
         axes[0].set_xlabel("X")
@@ -575,7 +588,7 @@ def create_multi_panel_animation(
             u_sub,
             v_sub,
             vel_sub,
-            cmap=velocity_cmap,
+            cmap=defaults.cmap,
             scale=15,
             width=0.003,
         )
@@ -587,7 +600,7 @@ def create_multi_panel_animation(
 
         # Streamlines
         axes[4].streamplot(
-            X, Y, u, v, color=vel_mag, cmap=velocity_cmap, density=2, linewidth=1.5
+            X, Y, u, v, color=vel_mag, cmap=defaults.cmap, density=2, linewidth=1.5
         )
         axes[4].set_xlim(X.min(), X.max())
         axes[4].set_ylim(Y.min(), Y.max())
@@ -603,7 +616,7 @@ def create_multi_panel_animation(
             aspect="auto",
             vmin=vel_range[0],
             vmax=vel_range[1],
-            cmap=velocity_cmap,
+            cmap=defaults.cmap,
             alpha=0.8,
         )
         axes[5].contour(X, Y, p, levels=6, colors="white", linewidths=1.5)
@@ -639,7 +652,7 @@ def create_multi_panel_animation(
 def create_particle_trace_animation(
     animation_frames: AnimationFrames,
     particle_traces: ParticleTraces,
-    figsize: Tuple[int, int] = (15, 8),
+    figsize: Tuple[int, int] = UNSET,
     interval: int = 100,
     title_prefix: str = "Particle Traces",
 ) -> Tuple[Figure, animation.FuncAnimation]:
@@ -655,6 +668,7 @@ def create_particle_trace_animation(
     Returns:
         Tuple of (figure, animation) objects.
     """
+    figsize = resolve(figsize, "figsize")
     if not animation_frames.frames:
         raise ValueError("No frames to animate")
 
@@ -753,7 +767,7 @@ def create_particle_trace_animation(
 
 def create_vorticity_analysis_animation(
     animation_frames: AnimationFrames,
-    figsize: Tuple[int, int] = (15, 6),
+    figsize: Tuple[int, int] = UNSET,
     interval: int = 400,
     title_prefix: str = "Vorticity Analysis",
 ) -> Tuple[Figure, animation.FuncAnimation]:
@@ -768,6 +782,8 @@ def create_vorticity_analysis_animation(
     Returns:
         Tuple of (figure, animation) objects.
     """
+    figsize = resolve(figsize, "figsize")
+    defaults = get_defaults()
     if not animation_frames.frames:
         raise ValueError("No frames to animate")
 
@@ -798,7 +814,7 @@ def create_vorticity_analysis_animation(
             aspect="auto",
             vmin=vort_range[0],
             vmax=vort_range[1],
-            cmap="RdBu",
+            cmap=defaults.diverging_cmap,
         )
         ax1.set_title("Vorticity Field", fontweight="bold")
         ax1.set_xlabel("X")
@@ -819,7 +835,7 @@ def create_vorticity_analysis_animation(
             v,
             color=vorticity,
             linewidth=lw,
-            cmap="RdBu",
+            cmap=defaults.diverging_cmap,
             density=2,
         )
         ax2.set_title("Streamlines Colored by Vorticity", fontweight="bold")
@@ -850,7 +866,7 @@ def create_vorticity_analysis_animation(
 def create_3d_surface_animation(
     animation_frames: AnimationFrames,
     field_name: str = "velocity_mag",
-    figsize: Tuple[int, int] = (12, 8),
+    figsize: Tuple[int, int] = UNSET,
     interval: int = 200,
     rotate_camera: bool = True,
     title_prefix: str = "3D Surface",
@@ -868,6 +884,8 @@ def create_3d_surface_animation(
     Returns:
         Tuple of (figure, animation) objects.
     """
+    figsize = resolve(figsize, "figsize")
+    defaults = get_defaults()
     if not animation_frames.frames:
         raise ValueError("No frames to animate")
 
@@ -890,7 +908,7 @@ def create_3d_surface_animation(
             X,
             Y,
             field,
-            cmap="viridis",
+            cmap=defaults.cmap,
             vmin=vmin,
             vmax=vmax,
             alpha=0.8,
@@ -905,7 +923,7 @@ def create_3d_surface_animation(
             field,
             zdir="z",
             offset=vmin - 0.1 * (vmax - vmin),
-            cmap="viridis",
+            cmap=defaults.cmap,
             alpha=0.5,
         )
 

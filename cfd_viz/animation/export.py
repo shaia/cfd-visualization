@@ -11,6 +11,8 @@ import numpy as np
 from matplotlib import animation
 from matplotlib.figure import Figure
 
+from cfd_viz.defaults import UNSET, get_defaults, resolve
+
 from .frames import AnimationFrames, FrameData
 from .renderers import create_velocity_colormap
 
@@ -18,8 +20,8 @@ from .renderers import create_velocity_colormap
 def export_frame_to_image(
     frame: FrameData,
     output_path: Union[str, Path],
-    figsize: Tuple[int, int] = (16, 12),
-    dpi: int = 150,
+    figsize: Tuple[int, int] = UNSET,
+    dpi: int = UNSET,
     include_vectors: bool = True,
     include_streamlines: bool = True,
     include_pressure: bool = True,
@@ -41,6 +43,9 @@ def export_frame_to_image(
         include_streamlines: Whether to include streamlines subplot.
         include_pressure: Whether to include pressure subplot.
     """
+    figsize = resolve(figsize, "figsize")
+    dpi = resolve(dpi, "dpi")
+    defaults = get_defaults()
     fig, axes = plt.subplots(2, 2, figsize=figsize)
     axes = axes.flatten()
 
@@ -55,7 +60,7 @@ def export_frame_to_image(
 
     # Panel 1: Velocity magnitude contours
     if velocity_mag is not None:
-        im1 = axes[0].contourf(X, Y, velocity_mag, levels=20, cmap="viridis")
+        im1 = axes[0].contourf(X, Y, velocity_mag, levels=20, cmap=defaults.cmap)
         axes[0].set_title("Velocity Magnitude")
         axes[0].axis("equal")
         plt.colorbar(im1, ax=axes[0])
@@ -77,7 +82,7 @@ def export_frame_to_image(
             u_sub,
             v_sub,
             np.sqrt(u_sub**2 + v_sub**2),
-            cmap="plasma",
+            cmap=defaults.sequential_cmap,
             scale_units="xy",
             angles="xy",
         )
@@ -91,14 +96,14 @@ def export_frame_to_image(
         try:
             if velocity_mag is not None:
                 axes[2].streamplot(
-                    X, Y, u, v, color=velocity_mag, cmap="viridis", density=2
+                    X, Y, u, v, color=velocity_mag, cmap=defaults.cmap, density=2
                 )
             else:
                 axes[2].streamplot(X, Y, u, v, density=2)
         except ValueError:
             # Streamplot can fail with certain grid configurations
             if velocity_mag is not None:
-                axes[2].contourf(X, Y, velocity_mag, levels=20, cmap="viridis")
+                axes[2].contourf(X, Y, velocity_mag, levels=20, cmap=defaults.cmap)
         axes[2].set_title("Flow Streamlines")
         axes[2].axis("equal")
     else:
@@ -106,12 +111,14 @@ def export_frame_to_image(
 
     # Panel 4: Pressure or combined view
     if include_pressure and p is not None:
-        im4 = axes[3].contourf(X, Y, p, levels=20, cmap="RdBu_r")
+        im4 = axes[3].contourf(X, Y, p, levels=20, cmap=defaults.diverging_cmap)
         axes[3].set_title("Pressure Field")
         axes[3].axis("equal")
         plt.colorbar(im4, ax=axes[3])
     elif velocity_mag is not None and u is not None and v is not None:
-        im4 = axes[3].contourf(X, Y, velocity_mag, levels=20, cmap="viridis", alpha=0.7)
+        im4 = axes[3].contourf(
+            X, Y, velocity_mag, levels=20, cmap=defaults.cmap, alpha=0.7
+        )
         axes[3].streamplot(X, Y, u, v, color="white", density=1, linewidth=0.8)
         axes[3].set_title("Combined: Magnitude + Streamlines")
         plt.colorbar(im4, ax=axes[3])
@@ -129,8 +136,8 @@ def export_animation_frames(
     animation_frames: AnimationFrames,
     output_dir: Union[str, Path],
     prefix: str = "frame",
-    figsize: Tuple[int, int] = (16, 12),
-    dpi: int = 150,
+    figsize: Tuple[int, int] = UNSET,
+    dpi: int = UNSET,
 ) -> List[str]:
     """Export all frames from AnimationFrames to image files.
 
@@ -144,6 +151,8 @@ def export_animation_frames(
     Returns:
         List of exported file paths.
     """
+    figsize = resolve(figsize, "figsize")
+    dpi = resolve(dpi, "dpi")
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -164,7 +173,7 @@ def save_animation(
     output_path: Union[str, Path],
     writer: str = "pillow",
     fps: int = 5,
-    dpi: int = 100,
+    dpi: int = UNSET,
 ) -> None:
     """Save a matplotlib animation to file.
 
@@ -175,6 +184,7 @@ def save_animation(
         fps: Frames per second.
         dpi: Resolution.
     """
+    dpi = resolve(dpi, "dpi")
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -183,7 +193,7 @@ def save_animation(
 
 def create_comprehensive_frame_figure(
     frame: FrameData,
-    figsize: Tuple[int, int] = (18, 10),
+    figsize: Tuple[int, int] = UNSET,
 ) -> Figure:
     """Create a comprehensive 2x3 figure for a single frame.
 
@@ -194,6 +204,8 @@ def create_comprehensive_frame_figure(
     Returns:
         Matplotlib Figure object.
     """
+    figsize = resolve(figsize, "figsize")
+    defaults = get_defaults()
     fig, axes = plt.subplots(2, 3, figsize=figsize)
     axes = axes.flatten()
 
@@ -215,7 +227,7 @@ def create_comprehensive_frame_figure(
     plt.colorbar(im0, ax=axes[0])
 
     # Pressure
-    im1 = axes[1].contourf(X, Y, p, levels=20, cmap="RdBu_r")
+    im1 = axes[1].contourf(X, Y, p, levels=20, cmap=defaults.diverging_cmap)
     contours = axes[1].contour(X, Y, p, levels=8, colors="black", linewidths=0.5)
     axes[1].clabel(contours, inline=True, fontsize=8)
     axes[1].set_title("Pressure Field", fontweight="bold")
