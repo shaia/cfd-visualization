@@ -13,6 +13,7 @@ from numpy.typing import NDArray
 
 from cfd_viz.analysis.case_comparison import CaseComparison, FieldDifference
 from cfd_viz.analysis.flow_features import SpatialFluctuations, WakeRegion
+from cfd_viz.defaults import UNSET, resolve
 
 
 def plot_field_difference(
@@ -20,8 +21,8 @@ def plot_field_difference(
     X: NDArray,
     Y: NDArray,
     ax: Optional[Axes] = None,
-    cmap: str = "RdBu_r",
-    levels: int = 20,
+    cmap: str = UNSET,
+    levels: int = UNSET,
     colorbar: bool = True,
     title: Optional[str] = None,
     **kwargs,
@@ -42,6 +43,9 @@ def plot_field_difference(
     Returns:
         The matplotlib axes object.
     """
+    cmap = resolve(cmap, "diverging_cmap")
+    levels = resolve(levels, "levels")
+
     if ax is None:
         _, ax = plt.subplots()
 
@@ -67,7 +71,7 @@ def plot_case_comparison(
     comparison: CaseComparison,
     X: NDArray,
     Y: NDArray,
-    figsize: tuple = (15, 10),
+    figsize: tuple = UNSET,
     **kwargs,
 ) -> plt.Figure:
     """Create a multi-panel comparison plot for two CFD cases.
@@ -82,6 +86,8 @@ def plot_case_comparison(
     Returns:
         The matplotlib figure object.
     """
+    figsize = resolve(figsize, "figsize")
+
     fig, axes = plt.subplots(2, 3, figsize=figsize)
     axes = axes.flatten()
 
@@ -182,7 +188,7 @@ def plot_wake_region(
     Y: NDArray,
     velocity_mag: NDArray,
     ax: Optional[Axes] = None,
-    field_cmap: str = "viridis",
+    field_cmap: str = UNSET,
     field_alpha: float = 0.7,
     wake_color: str = "red",
     wake_linewidth: float = 2,
@@ -207,6 +213,8 @@ def plot_wake_region(
     Returns:
         The matplotlib axes object.
     """
+    field_cmap = resolve(field_cmap, "cmap")
+
     if ax is None:
         _, ax = plt.subplots()
 
@@ -246,8 +254,8 @@ def plot_spatial_fluctuations(
     X: NDArray,
     Y: NDArray,
     ax: Optional[Axes] = None,
-    cmap: str = "hot",
-    levels: int = 15,
+    cmap: str = UNSET,
+    levels: int = UNSET,
     colorbar: bool = True,
     title: Optional[str] = None,
     **kwargs,
@@ -268,6 +276,9 @@ def plot_spatial_fluctuations(
     Returns:
         The matplotlib axes object.
     """
+    cmap = resolve(cmap, "cmap")
+    levels = resolve(levels, "levels")
+
     if ax is None:
         _, ax = plt.subplots()
 
@@ -290,7 +301,7 @@ def plot_flow_statistics(
     stats: Dict[str, float],
     ax: Optional[Axes] = None,
     title: str = "Flow Statistics",
-    fontsize: int = 10,
+    fontsize: int = UNSET,
     **kwargs,
 ) -> Axes:
     """Plot a text panel with flow statistics.
@@ -305,6 +316,8 @@ def plot_flow_statistics(
     Returns:
         The matplotlib axes object.
     """
+    fontsize = resolve(fontsize, "font_size")
+
     if ax is None:
         _, ax = plt.subplots()
 

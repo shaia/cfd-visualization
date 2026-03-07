@@ -18,6 +18,7 @@ from cfd_viz.analysis.boundary_layer import (
 )
 from cfd_viz.analysis.flow_features import CrossSectionalAverages
 from cfd_viz.analysis.line_extraction import LineProfile, MultipleProfiles
+from cfd_viz.defaults import UNSET, resolve
 
 
 def plot_line_profile(
@@ -96,7 +97,7 @@ def plot_multiple_profiles(
     profiles: MultipleProfiles,
     ax: Optional[Axes] = None,
     plot_type: str = "magnitude",
-    colormap: str = "viridis",
+    colormap: str = UNSET,
     title: str = "Multiple Line Profiles",
     **kwargs,
 ) -> Axes:
@@ -113,6 +114,8 @@ def plot_multiple_profiles(
     Returns:
         The matplotlib axes object.
     """
+    colormap = resolve(colormap, "cmap")
+
     if ax is None:
         _, ax = plt.subplots()
 
@@ -155,7 +158,7 @@ def plot_velocity_profiles(
     y: NDArray,
     u_profiles: Sequence[NDArray],
     ax: Optional[Axes] = None,
-    colormap: str = "viridis",
+    colormap: str = UNSET,
     title: str = "Velocity Profiles at Different Stations",
     **kwargs,
 ) -> Axes:
@@ -173,6 +176,8 @@ def plot_velocity_profiles(
     Returns:
         The matplotlib axes object.
     """
+    colormap = resolve(colormap, "cmap")
+
     if ax is None:
         _, ax = plt.subplots()
 
@@ -266,7 +271,7 @@ def plot_boundary_layer_profiles(
     profiles: List[BoundaryLayerProfile],
     ax: Optional[Axes] = None,
     normalized: bool = True,
-    colormap: str = "plasma",
+    colormap: str = UNSET,
     title: str = "Boundary Layer Profiles",
     **kwargs,
 ) -> Axes:
@@ -283,6 +288,8 @@ def plot_boundary_layer_profiles(
     Returns:
         The matplotlib axes object.
     """
+    colormap = resolve(colormap, "sequential_cmap")
+
     if ax is None:
         _, ax = plt.subplots()
 
