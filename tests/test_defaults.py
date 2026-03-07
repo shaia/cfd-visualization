@@ -1,11 +1,12 @@
 """Tests for cfd_viz.defaults module."""
 
 import matplotlib
+
+matplotlib.use("Agg")
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
-
-matplotlib.use("Agg")
 
 from cfd_viz.defaults import (
     UNSET,
