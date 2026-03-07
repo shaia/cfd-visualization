@@ -1,10 +1,11 @@
 # Common utilities package
 from .config import ANIMATIONS_DIR, DATA_DIR, PLOTS_DIR, ensure_dirs, find_vtk_files
-from .vtk_reader import VTKData, read_vtk_file
+from .vtk_reader import FIELD_ALIASES, VTKData, read_vtk_file
 
 __all__ = [
     "ANIMATIONS_DIR",
     "DATA_DIR",
+    "FIELD_ALIASES",
     "PLOTS_DIR",
     "VTKData",
     "ensure_dirs",

@@ -36,7 +36,12 @@ cfd-python Integration:
 For more examples, see the examples/ directory.
 """
 
-__version__ = "0.1.0"
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("cfd-visualization")
+except PackageNotFoundError:
+    __version__ = "0+unknown"  # Fallback for uninstalled development usage
 
 # Re-export commonly used items for convenience
 # Import fields module for easy access
