@@ -413,8 +413,8 @@ class TestFieldAliases:
         assert FIELD_ALIASES["velocity_x"] == "u"
         assert FIELD_ALIASES["velocity_y"] == "v"
 
-    def test_canonical_names_not_in_aliases_as_values(self):
-        # Canonical names should not map to themselves
+    def test_canonical_names_not_aliased_to_themselves(self):
+        # Canonical names should not appear as keys in FIELD_ALIASES
         assert "u" not in FIELD_ALIASES
         assert "v" not in FIELD_ALIASES
         assert "p" not in FIELD_ALIASES
