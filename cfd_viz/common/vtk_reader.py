@@ -63,6 +63,7 @@ class VTKData:
         ny: int,
         dx: float,
         dy: float,
+        validate: bool = True,
     ):
         self.x = x
         self.y = y
@@ -84,21 +85,22 @@ class VTKData:
                 )
 
         # Warn on NaN/inf values (only for floating-point fields)
-        for name, field in self.fields.items():
-            if not np.issubdtype(field.dtype, np.floating):
-                continue
-            if np.any(np.isnan(field)):
-                warnings.warn(
-                    f"Field '{name}' contains NaN values",
-                    UserWarning,
-                    stacklevel=2,
-                )
-            if np.any(np.isinf(field)):
-                warnings.warn(
-                    f"Field '{name}' contains infinite values",
-                    UserWarning,
-                    stacklevel=2,
-                )
+        if validate:
+            for name, field in self.fields.items():
+                if not np.issubdtype(field.dtype, np.floating):
+                    continue
+                if np.any(np.isnan(field)):
+                    warnings.warn(
+                        f"Field '{name}' contains NaN values",
+                        UserWarning,
+                        stacklevel=2,
+                    )
+                if np.any(np.isinf(field)):
+                    warnings.warn(
+                        f"Field '{name}' contains infinite values",
+                        UserWarning,
+                        stacklevel=2,
+                    )
 
     def __repr__(self) -> str:
         field_names = ", ".join(sorted(self.fields.keys()))
