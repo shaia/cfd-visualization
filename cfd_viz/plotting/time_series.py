@@ -19,6 +19,7 @@ from cfd_viz.analysis.time_series import (
     FlowMetricsTimeSeries,
     TemporalStatistics,
 )
+from cfd_viz.defaults import UNSET, get_defaults, resolve
 
 
 def plot_metric_time_series(
@@ -84,7 +85,7 @@ def plot_metric_time_series(
 def plot_convergence_history(
     history: FlowMetricsTimeSeries,
     metrics: Sequence[str] = ("max_velocity", "mean_velocity", "total_kinetic_energy"),
-    figsize: tuple = (15, 4),
+    figsize: tuple = UNSET,
     **kwargs,
 ) -> Figure:
     """Plot convergence history for multiple metrics.
@@ -98,6 +99,8 @@ def plot_convergence_history(
     Returns:
         The matplotlib figure object.
     """
+    figsize = resolve(figsize, "figsize")
+
     fig, axes = plt.subplots(1, len(metrics), figsize=figsize)
     if len(metrics) == 1:
         axes = [axes]
@@ -138,7 +141,7 @@ def plot_monitoring_dashboard(
     Y: NDArray,
     velocity_mag: NDArray,
     pressure: NDArray,
-    figsize: tuple = (18, 10),
+    figsize: tuple = UNSET,
     **kwargs,
 ) -> Figure:
     """Create a real-time monitoring dashboard.
@@ -156,12 +159,17 @@ def plot_monitoring_dashboard(
     Returns:
         The matplotlib figure object.
     """
+    figsize = resolve(figsize, "figsize")
+    defaults = get_defaults()
+
     fig, axes = plt.subplots(2, 3, figsize=figsize)
     fig.suptitle("CFD Real-time Monitoring Dashboard", fontsize=16)
     axes = axes.flatten()
 
     # 1. Velocity magnitude field
-    cs1 = axes[0].contourf(X, Y, velocity_mag, levels=20, cmap="viridis")
+    cs1 = axes[0].contourf(
+        X, Y, velocity_mag, levels=defaults.levels, cmap=defaults.cmap
+    )
     plt.colorbar(cs1, ax=axes[0], label="Velocity (m/s)")
     axes[0].set_title("Velocity Field")
     axes[0].set_xlabel("x (m)")
@@ -169,7 +177,9 @@ def plot_monitoring_dashboard(
     axes[0].set_aspect("equal")
 
     # 2. Pressure field
-    cs2 = axes[1].contourf(X, Y, pressure, levels=20, cmap="plasma")
+    cs2 = axes[1].contourf(
+        X, Y, pressure, levels=defaults.levels, cmap=defaults.sequential_cmap
+    )
     plt.colorbar(cs2, ax=axes[1], label="Pressure")
     axes[1].set_title("Pressure Field")
     axes[1].set_xlabel("x (m)")
@@ -299,7 +309,7 @@ def plot_temporal_statistics(
     stats: TemporalStatistics,
     X: NDArray,
     Y: NDArray,
-    figsize: tuple = (15, 5),
+    figsize: tuple = UNSET,
     **kwargs,
 ) -> Figure:
     """Plot temporal statistics (mean, std, min, max fields).
@@ -314,28 +324,31 @@ def plot_temporal_statistics(
     Returns:
         The matplotlib figure object.
     """
+    figsize = resolve(figsize, "figsize")
+    defaults = get_defaults()
+
     fig, axes = plt.subplots(1, 4, figsize=figsize)
 
     # Mean field
-    cs1 = axes[0].contourf(X, Y, stats.mean, levels=20, cmap="viridis")
+    cs1 = axes[0].contourf(X, Y, stats.mean, levels=defaults.levels, cmap=defaults.cmap)
     plt.colorbar(cs1, ax=axes[0], label="Mean")
     axes[0].set_title("Time-Averaged Field")
     axes[0].set_aspect("equal")
 
     # Standard deviation
-    cs2 = axes[1].contourf(X, Y, stats.std, levels=20, cmap="hot")
+    cs2 = axes[1].contourf(X, Y, stats.std, levels=defaults.levels, cmap="hot")
     plt.colorbar(cs2, ax=axes[1], label="Std Dev")
     axes[1].set_title("Standard Deviation")
     axes[1].set_aspect("equal")
 
     # Minimum
-    cs3 = axes[2].contourf(X, Y, stats.min, levels=20, cmap="viridis")
+    cs3 = axes[2].contourf(X, Y, stats.min, levels=defaults.levels, cmap=defaults.cmap)
     plt.colorbar(cs3, ax=axes[2], label="Min")
     axes[2].set_title("Minimum Values")
     axes[2].set_aspect("equal")
 
     # Maximum
-    cs4 = axes[3].contourf(X, Y, stats.max, levels=20, cmap="viridis")
+    cs4 = axes[3].contourf(X, Y, stats.max, levels=defaults.levels, cmap=defaults.cmap)
     plt.colorbar(cs4, ax=axes[3], label="Max")
     axes[3].set_title("Maximum Values")
     axes[3].set_aspect("equal")
