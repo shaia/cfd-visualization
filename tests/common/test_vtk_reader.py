@@ -13,6 +13,10 @@ from cfd_viz.common.vtk_reader import (
 )
 
 SAMPLE_VTK_DIR = Path(__file__).parent.parent.parent / "data" / "vtk_files"
+_sample_file_missing = not (SAMPLE_VTK_DIR / "flow_field_50x50_Re100.vtk").exists()
+_skip_no_samples = pytest.mark.skipif(
+    _sample_file_missing, reason="Sample VTK files not available"
+)
 
 
 # ---------------------------------------------------------------------------
@@ -159,6 +163,7 @@ class TestVTKDataConstruction:
 
 
 class TestReadVTKFileStructuredPoints:
+    @_skip_no_samples
     def test_read_real_sample_file(self):
         vtk_file = SAMPLE_VTK_DIR / "flow_field_50x50_Re100.vtk"
         data = read_vtk_file(str(vtk_file))
@@ -169,6 +174,7 @@ class TestReadVTKFileStructuredPoints:
         assert data.v is not None
         assert data.u.shape == (50, 50)
 
+    @_skip_no_samples
     def test_real_file_with_scalars(self):
         vtk_file = SAMPLE_VTK_DIR / "animated_flow_0050.vtk"
         data = read_vtk_file(str(vtk_file))
@@ -177,6 +183,7 @@ class TestReadVTKFileStructuredPoints:
         assert "p" in data
         assert data["p"].shape == (data.ny, data.nx)
 
+    @_skip_no_samples
     def test_origin_and_spacing(self):
         vtk_file = SAMPLE_VTK_DIR / "flow_field_50x50_Re100.vtk"
         data = read_vtk_file(str(vtk_file))
@@ -361,6 +368,7 @@ class TestReadVTKFileMalformed:
 
 
 class TestReadVTKVelocity:
+    @_skip_no_samples
     def test_returns_tuple(self):
         vtk_file = SAMPLE_VTK_DIR / "flow_field_50x50_Re100.vtk"
         result = read_vtk_velocity(str(vtk_file))

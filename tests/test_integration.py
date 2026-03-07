@@ -15,10 +15,15 @@ from cfd_viz.fields import magnitude, vorticity
 from cfd_viz.plotting import plot_contour_field
 
 SAMPLE_VTK_DIR = Path(__file__).parent.parent / "data" / "vtk_files"
+_sample_file_missing = not (SAMPLE_VTK_DIR / "flow_field_50x50_Re100.vtk").exists()
+_skip_no_samples = pytest.mark.skipif(
+    _sample_file_missing, reason="Sample VTK files not available"
+)
 
 
 @pytest.mark.integration
 class TestEndToEnd:
+    @_skip_no_samples
     def test_vtk_read_compute_plot(self):
         """Read VTK file -> compute derived fields -> plot -> no exceptions."""
         data = read_vtk_file(str(SAMPLE_VTK_DIR / "flow_field_50x50_Re100.vtk"))
@@ -50,6 +55,7 @@ class TestEndToEnd:
         plot_contour_field(data.X, data.Y, speed, ax=ax)
         plt.close(fig)
 
+    @_skip_no_samples
     def test_field_alias_in_pipeline(self):
         """Verify aliases work through the full pipeline."""
         data = read_vtk_file(str(SAMPLE_VTK_DIR / "animated_flow_0050.vtk"))
@@ -70,6 +76,7 @@ class TestEndToEnd:
         assert isinstance(__version__, str)
         assert len(__version__) > 0
 
+    @_skip_no_samples
     def test_vtk_data_repr(self):
         """VTKData repr should be informative."""
         data = read_vtk_file(str(SAMPLE_VTK_DIR / "flow_field_50x50_Re100.vtk"))
