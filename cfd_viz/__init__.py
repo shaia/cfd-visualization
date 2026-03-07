@@ -57,6 +57,15 @@ from .cfd_python_integration import (
 )
 from .common import VTKData, ensure_dirs, find_vtk_files, read_vtk_file
 from .convert import from_cfd_python, from_simulation_result, to_cfd_python
+from .defaults import (
+    UNSET,
+    PlotDefaults,
+    get_defaults,
+    load_config_file,
+    plot_context,
+    reset_defaults,
+    set_defaults,
+)
 from .info import get_recommended_settings, get_system_info, print_system_info
 from .quick import quick_plot, quick_plot_data, quick_plot_result
 from .stats import (
@@ -67,6 +76,14 @@ from .stats import (
 
 __all__ = [
     "__version__",
+    # Configuration
+    "UNSET",
+    "PlotDefaults",
+    "get_defaults",
+    "set_defaults",
+    "reset_defaults",
+    "plot_context",
+    "load_config_file",
     # I/O
     "VTKData",
     "read_vtk_file",
