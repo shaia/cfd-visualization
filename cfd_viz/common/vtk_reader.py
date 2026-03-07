@@ -87,8 +87,10 @@ class VTKData:
                     f"expected {expected_shape} (ny, nx)"
                 )
 
-        # Warn on NaN/inf values
+        # Warn on NaN/inf values (only for floating-point fields)
         for name, field in self.fields.items():
+            if not np.issubdtype(field.dtype, np.floating):
+                continue
             if np.any(np.isnan(field)):
                 warnings.warn(
                     f"Field '{name}' contains NaN values",
