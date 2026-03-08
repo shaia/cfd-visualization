@@ -51,6 +51,7 @@ def _progress(current, total, label=""):
 
 
 def _run_vorticity(vtk_file, output_dir):
+    from cfd_viz._cli_impl import create_vorticity_visualization
     from cfd_viz.common import ensure_dirs, read_vtk_file
 
     ensure_dirs()
@@ -63,39 +64,32 @@ def _run_vorticity(vtk_file, output_dir):
         print(f"  Warning: no velocity data in {vtk_file}")
         return
 
-    from scripts.create_vorticity_analysis import (
-        create_vorticity_visualization,
-    )
-
-    data_dict = data.to_dict()
-    create_vorticity_visualization(data_dict, output_dir)
+    create_vorticity_visualization(data.to_dict(), output_dir)
 
 
 def _run_profiles(vtk_file, output_dir):
-    from cfd_viz.common import ensure_dirs, read_vtk_file as _read
+    from cfd_viz._cli_impl import (
+        _vtk_to_profiles_dict,
+        create_cross_section_analysis,
+    )
+    from cfd_viz.common import ensure_dirs, read_vtk_file
 
     ensure_dirs()
-    data = _read(vtk_file)
+    data = read_vtk_file(vtk_file)
     if data is None:
         print(f"  Warning: could not read {vtk_file}")
         return
 
-    from scripts.create_line_profiles import (
-        create_cross_section_analysis,
-        read_vtk_file,
-    )
-
-    data_dict = read_vtk_file(vtk_file)
+    data_dict = _vtk_to_profiles_dict(data)
     if data_dict is None:
+        print(f"  Warning: no velocity data in {vtk_file}")
         return
+
     create_cross_section_analysis(data_dict, output_dir)
 
 
 def _run_animate(vtk_files, output_dir, animate_type="velocity", fps=5):
-    from scripts.create_animation import (
-        create_and_save_animation,
-        load_vtk_files_to_frames,
-    )
+    from cfd_viz._cli_impl import create_and_save_animation, load_vtk_files_to_frames
 
     frames = load_vtk_files_to_frames(vtk_files)
     output_path = os.path.join(output_dir, f"cfd_{animate_type}.gif")
@@ -106,7 +100,15 @@ def run_batch(config_path):
     """Execute a batch config file."""
     import glob as globmod
 
-    cfg = _load_toml(config_path)
+    try:
+        cfg = _load_toml(config_path)
+    except FileNotFoundError:
+        print(f"Error: config file not found: {config_path}", file=sys.stderr)
+        raise SystemExit(2) from None
+    except Exception as exc:
+        print(f"Error: failed to parse config: {exc}", file=sys.stderr)
+        raise SystemExit(2) from None
+
     batch = cfg.get("batch", {})
     global_output = batch.get("output_dir", "output/batch")
     jobs = batch.get("jobs", [])
@@ -152,7 +154,13 @@ def run_batch(config_path):
             elif analysis == "animate":
                 animate_type = job.get("animate_type", "velocity")
                 fps = job.get("fps", 5)
-                _run_animate(vtk_files, job_output, animate_type, fps)
+                try:
+                    _run_animate(vtk_files, job_output, animate_type, fps)
+                except Exception as exc:
+                    print(
+                        f"  Warning: animate analysis failed for job"
+                        f" {idx}/{total}: {exc}"
+                    )
             else:
                 print(f"  Warning: unknown analysis '{analysis}', skipping")
 

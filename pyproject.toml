@@ -99,6 +99,8 @@ unfixable = []
 "examples/*.py" = ["PLR0915", "PLW0603", "RUF059", "F841"]
 # Tests can use assert and have longer functions, unused variables in fixtures
 "tests/*.py" = ["S101", "PLR0915", "RUF059", "F841", "RUF043"]
+# _cli_impl sets matplotlib backend before importing pyplot
+"cfd_viz/_cli_impl.py" = ["E402"]
 
 [tool.ruff.lint.isort]
 # Group imports: standard library, third-party, local
