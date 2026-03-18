@@ -661,7 +661,7 @@ def run_monitor(watch_dir, output_dir, interval=2.0, manual=False):
     def _read_vtk_for_monitor(filename):
         try:
             data = read_vtk_file(filename)
-        except (FileNotFoundError, PermissionError):
+        except (FileNotFoundError, PermissionError, ValueError):
             return None
         if data is None:
             return None
