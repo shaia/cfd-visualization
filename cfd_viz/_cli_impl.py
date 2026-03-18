@@ -10,7 +10,10 @@ from pathlib import Path
 
 import matplotlib
 
-matplotlib.use("Agg")
+# Only force non-interactive backend when no display is available.
+# This preserves GUI capability for interactive commands (e.g. monitor).
+if os.name != "nt" and not os.environ.get("DISPLAY"):
+    matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 import numpy as np
