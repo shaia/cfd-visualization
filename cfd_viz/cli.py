@@ -172,7 +172,11 @@ def _cmd_animate(args):
     vtk_files = sorted(set(vtk_files))
     print(f"Found {len(vtk_files)} VTK files")
 
-    animation_frames = load_vtk_files_to_frames(vtk_files)
+    try:
+        animation_frames = load_vtk_files_to_frames(vtk_files)
+    except ValueError as e:
+        print(f"Error: {e}")
+        raise SystemExit(1) from None
 
     if args.export_frames:
         output_dir = args.output_dir or str(PLOTS_DIR / "frames")
@@ -231,7 +235,11 @@ def _cmd_vorticity(args):
     if input_file is None:
         return
 
-    data = read_vtk_file(input_file)
+    try:
+        data = read_vtk_file(input_file)
+    except ValueError as exc:
+        print(f"Error: Failed to read VTK file '{input_file}': {exc}")
+        return
     if data is None:
         return
     if data.u is None or data.v is None:
@@ -256,7 +264,11 @@ def _cmd_profiles(args):
     if input_file is None:
         return
 
-    data = read_vtk_file(input_file)
+    try:
+        data = read_vtk_file(input_file)
+    except ValueError as exc:
+        print(f"Error: Failed to read VTK file '{input_file}': {exc}")
+        return
     if data is None:
         return
 
