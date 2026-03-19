@@ -65,10 +65,15 @@ def _build_parser() -> argparse.ArgumentParser:
     p_anim.add_argument(
         "--field", "-f", default="velocity_mag", help="Field for field animations"
     )
-    p_anim.add_argument("--output", "-o", default=None, help="Output path")
+    p_anim.add_argument(
+        "--output", "-o", default=None, help="Output file path for animation"
+    )
     p_anim.add_argument("--fps", type=int, default=5, help="Frames per second")
     p_anim.add_argument(
         "--export-frames", action="store_true", help="Export individual frames"
+    )
+    p_anim.add_argument(
+        "--output-dir", default=None, help="Output directory for --export-frames"
     )
     p_anim.add_argument("--all", action="store_true", help="Create all animation types")
 
@@ -170,7 +175,7 @@ def _cmd_animate(args):
     animation_frames = load_vtk_files_to_frames(vtk_files)
 
     if args.export_frames:
-        output_dir = args.output or str(PLOTS_DIR / "frames")
+        output_dir = args.output_dir or str(PLOTS_DIR / "frames")
         print(f"Exporting frames to {output_dir}...")
         exported = export_animation_frames(animation_frames, output_dir)
         print(f"Exported {len(exported)} frames")
