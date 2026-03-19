@@ -55,7 +55,11 @@ def _run_vorticity(vtk_file, output_dir):
     from cfd_viz.common import ensure_dirs, read_vtk_file
 
     ensure_dirs()
-    data = read_vtk_file(vtk_file)
+    try:
+        data = read_vtk_file(vtk_file)
+    except ValueError:
+        print(f"  Warning: invalid VTK file {vtk_file}")
+        return
     if data is None:
         print(f"  Warning: could not read {vtk_file}")
         return
@@ -75,7 +79,11 @@ def _run_profiles(vtk_file, output_dir):
     from cfd_viz.common import ensure_dirs, read_vtk_file
 
     ensure_dirs()
-    data = read_vtk_file(vtk_file)
+    try:
+        data = read_vtk_file(vtk_file)
+    except ValueError:
+        print(f"  Warning: invalid VTK file {vtk_file}")
+        return
     if data is None:
         print(f"  Warning: could not read {vtk_file}")
         return
