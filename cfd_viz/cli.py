@@ -188,6 +188,7 @@ def _cmd_animate(args):
             "vorticity",
             "3d",
             "particles",
+            "field",
         ]:
             output_path = str(ANIMATIONS_DIR / f"cfd_{anim_type}.gif")
             try:
