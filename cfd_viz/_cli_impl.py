@@ -12,7 +12,12 @@ import matplotlib
 
 # Only force non-interactive backend when no display is available.
 # This preserves GUI capability for interactive commands (e.g. monitor).
-if os.name != "nt" and not os.environ.get("DISPLAY"):
+# Windows and macOS always have a display; on Linux check DISPLAY/WAYLAND_DISPLAY.
+if (
+    sys.platform == "linux"
+    and not os.environ.get("DISPLAY")
+    and not os.environ.get("WAYLAND_DISPLAY")
+):
     matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
@@ -33,7 +38,7 @@ def resolve_vtk_input(input_file=None, latest=False):
         if not vtk_files:
             print(f"No VTK files found in {DATA_DIR}")
             return None
-        path = str(max(vtk_files, key=lambda f: f.stat().st_ctime))
+        path = str(max(vtk_files, key=lambda f: f.stat().st_mtime))
         print(f"Using latest file: {path}")
         return path
 
@@ -768,7 +773,7 @@ def run_monitor(watch_dir, output_dir, interval=2.0, manual=False):
             while True:
                 vtk_files = _glob.glob(os.path.join(watch_dir, "*.vtk"))
                 if vtk_files:
-                    latest = max(vtk_files, key=os.path.getctime)
+                    latest = max(vtk_files, key=os.path.getmtime)
                     if latest != last_file:
                         monitor.process_new_file(latest)
                         last_file = latest
@@ -784,8 +789,11 @@ def run_monitor(watch_dir, output_dir, interval=2.0, manual=False):
         observer.schedule(_VTKHandler(monitor), watch_dir, recursive=False)
         observer.start()
         monitor.monitoring = True
+        monitor.fig.canvas.mpl_connect(
+            "close_event", lambda _: setattr(monitor, "monitoring", False)
+        )
         try:
-            while monitor.monitoring:
+            while monitor.monitoring and plt.fignum_exists(monitor.fig.number):
                 plt.pause(1.0)
         except KeyboardInterrupt:
             pass
