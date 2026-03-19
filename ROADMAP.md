@@ -2,7 +2,7 @@
 
 This document outlines planned enhancements for cfd-visualization, organized by priority and release target.
 
-**Last Updated:** 2026-03-05
+**Last Updated:** 2026-03-07
 **Current Version:** 0.1.0
 
 ---
@@ -75,26 +75,18 @@ The VTK reader had zero dedicated tests and VTKData accepted any data without va
 
 ---
 
-## Phase 4: CLI Tooling & Entry Points
+## Phase 4: CLI Tooling & Entry Points - COMPLETE
 
-**Priority:** P1 - Registers existing orphaned code
-**Target:** v0.3.0
+**Status:** Completed (2026-03-07)
 
-Five scripts exist in `scripts/` but are not registered as package entry points. Users must run `python scripts/create_animation.py` instead of a proper CLI command.
+Five scripts existed in `scripts/` but were not registered as package entry points. This phase added a unified `cfd-viz` CLI with argparse subcommands dispatching to existing scripts, batch processing, and progress indicators.
 
-### Tasks
-
-- [ ] **4.1 Register entry points** in `pyproject.toml` - `[project.scripts]` section
-- [ ] **4.2 Create unified `cfd-viz` CLI** - single entry point with argparse subcommands dispatching to existing scripts
-- [ ] **4.3 Add batch processing** - `cfd-viz batch --config batch.toml` for processing multiple VTK files in one run
-- [ ] **4.4 Add `cfd-viz info`** - wraps existing `print_system_info()`, shows backends and optional deps
-- [ ] **4.5 Add progress indicators** - simple stderr output for batch operations and animation rendering (no extra dependency)
-
-### Success Criteria
-
-- `pip install -e .` makes `cfd-viz` command available
-- `cfd-viz info` prints system capabilities
-- `cfd-viz batch` processes multiple files from config
+- [x] **4.1 Register entry points** in `pyproject.toml` - `[project.scripts]` section, `cfd-viz = "cfd_viz.cli:main"`
+- [x] **4.2 Create unified `cfd-viz` CLI** (`cfd_viz/cli.py`) - single entry point with subcommands: `animate`, `dashboard`, `vorticity`, `profiles`, `monitor`, `info`, `batch`
+- [x] **4.3 Add batch processing** (`cfd_viz/_batch.py`) - `cfd-viz batch --config batch.toml` for processing multiple VTK files with TOML config
+- [x] **4.4 Add `cfd-viz info`** - wraps existing `print_system_info()`, shows backends and optional deps
+- [x] **4.5 Add progress indicators** - simple stderr progress bar for batch operations (no extra dependency)
+- [x] **4.6 Add CLI tests** (`tests/test_cli.py`) - 23 tests covering parser structure, dispatch, batch processing, progress, and entry point registration
 
 ---
 
